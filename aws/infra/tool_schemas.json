@@ -118,5 +118,74 @@
         "reason"
       ]
     }
+  },
+  {
+    "name": "decide_approval",
+    "description": "A NOC engineer's decision on a waiting approval. The approver is the caller's verified role; a decision is final.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string"
+        },
+        "approval_id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "denied"
+          ]
+        },
+        "caller": {
+          "type": "string",
+          "description": "set by the interceptor; any agent value is dropped"
+        },
+        "trace_id": {
+          "type": "string",
+          "description": "Set by the interceptor from the JSON-RPC request id; any value the agent sends is overwritten."
+        }
+      },
+      "required": [
+        "incident_id",
+        "approval_id",
+        "decision"
+      ]
+    }
+  },
+  {
+    "name": "ask_agent",
+    "description": "The lead agent asks a team agent for a handover note. Advice only: it changes nothing. Bedrock Guardrails check the model's input and output.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string"
+        },
+        "agent": {
+          "type": "string",
+          "enum": [
+            "specialist"
+          ]
+        },
+        "task": {
+          "type": "string"
+        },
+        "caller": {
+          "type": "string",
+          "description": "set by the interceptor; any agent value is dropped"
+        },
+        "trace_id": {
+          "type": "string",
+          "description": "Set by the interceptor from the JSON-RPC request id; any value the agent sends is overwritten."
+        }
+      },
+      "required": [
+        "incident_id",
+        "agent",
+        "task"
+      ]
+    }
   }
 ]

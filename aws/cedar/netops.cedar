@@ -5,6 +5,26 @@ permit(principal is AgentCore::OAuthUser,
 when { principal.hasTag("role") &&
        (principal.getTag("role") == "netops-agent" || principal.getTag("role") == "noc-engineer") };
 
+// P1s the specialist may read incidents and nothing else
+permit(principal is AgentCore::OAuthUser,
+       action == AgentCore::Action::"NetOps___get_incident",
+       resource == AgentCore::Gateway::"GW")
+when { principal.hasTag("role") && principal.getTag("role") == "netops-specialist" };
+
+// P4  only the lead agent may ask a team agent
+permit(principal is AgentCore::OAuthUser,
+       action == AgentCore::Action::"NetOps___ask_agent",
+       resource == AgentCore::Gateway::"GW")
+when { principal.hasTag("role") && principal.getTag("role") == "netops-agent" &&
+       ["specialist"].contains(context.input.agent) };
+
+// P5  only a human engineer may decide an approval
+permit(principal is AgentCore::OAuthUser,
+       action == AgentCore::Action::"NetOps___decide_approval",
+       resource == AgentCore::Gateway::"GW")
+when { principal.hasTag("role") && principal.getTag("role") == "noc-engineer" &&
+       ["approved", "denied"].contains(context.input.decision) };
+
 // P2k1  licensed autonomous remediation in category k1
 permit(principal is AgentCore::OAuthUser,
        action == AgentCore::Action::"NetOps___apply_remediation",

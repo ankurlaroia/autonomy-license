@@ -51,9 +51,9 @@ class Simulator:
                 for cid in sorted(set(cells)):
                     for param, delta in EFFECTS.get(action, []):
                         if param == "pci":
-                            after[cid]["pci"] = (after[cid]["pci"] + 1) % 504
-                        else:
-                            after[cid][param] = round(after[cid].get(param, 0) + delta, 2)
+                            after[cid]["pci"] = ((after[cid].get("pci") or 0) + 1) % 504
+                        else:       # an empty value in the data counts as absent (live run 2026-11-02)
+                            after[cid][param] = round((after[cid].get(param) or 0) + delta, 2)
                     after[cid]["version"] += 1
                     p = {k: v for k, v in after[cid].items() if k != "version"}
                     self.s.db.execute("UPDATE cells SET params=?, version=? WHERE incident_id=? AND cell_id=?",

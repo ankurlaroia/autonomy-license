@@ -92,10 +92,32 @@ def test_plan_carries_no_secrets():
 def test_lambda_role_reaches_only_the_registry_tables():
     doc = D.lambda_role_policy("1", "us-east-1")
     st, _ = doc["Statement"]
-    assert sorted(st["Resource"]) == ["arn:aws:dynamodb:us-east-1:1:table/al-changes",
+    assert sorted(st["Resource"]) == ["arn:aws:dynamodb:us-east-1:1:table/al-approvals",
+                                      "arn:aws:dynamodb:us-east-1:1:table/al-changes",
                                       "arn:aws:dynamodb:us-east-1:1:table/al-licences",
                                       "arn:aws:dynamodb:us-east-1:1:table/al-warnings"]
     assert "dynamodb:DeleteItem" not in st["Action"] and "dynamodb:*" not in st["Action"]
+
+
+def test_lambda_role_reaches_one_guardrail_and_one_model_only():
+    stmts = D.lambda_role_policy("1", "us-east-1", None, "g1", "m1")["Statement"][2:]
+    assert {s["Action"]: s["Resource"] for s in stmts} == {
+        "bedrock:ApplyGuardrail": "arn:aws:bedrock:us-east-1:1:guardrail/g1",
+        "bedrock:InvokeModel": "arn:aws:bedrock:us-east-1::foundation-model/m1"}
+    assert len(D.lambda_role_policy("1", "us-east-1")["Statement"]) == 2     # no guardrail, no Bedrock at all
+
+
+def test_guardrail_checks_prompt_attacks_on_input_and_harm_both_ways():
+    filters = {f["type"]: f for f in D.guardrail_request()["contentPolicyConfig"]["filtersConfig"]}
+    assert filters["PROMPT_ATTACK"]["inputStrength"] == "HIGH" and filters["PROMPT_ATTACK"]["outputStrength"] == "NONE"
+    for t in ("VIOLENCE", "HATE", "MISCONDUCT"):
+        assert filters[t]["inputStrength"] == filters[t]["outputStrength"] == "HIGH"
+
+
+def test_each_team_member_has_its_own_role():
+    assert D.CLIENT_ROLES == {"agent_client": "netops-agent", "engineer_client": "noc-engineer",
+                              "specialist_client": "netops-specialist"}
+    assert len({D.NAMES[k] for k in D.CLIENT_ROLES}) == 3
 
 
 def test_lambda_role_can_only_append_to_the_audit_table():

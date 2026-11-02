@@ -18,6 +18,7 @@ import argparse
 from common.catalogue import AUTO_ACTIONS, BLAST_RADIUS, CATEGORIES, NEVER_AUTONOMOUS
 
 TARGET = "NetOps"
+TEAM_AGENTS = ("specialist",)
 
 
 def _list(xs):
@@ -42,6 +43,23 @@ permit(principal is AgentCore::OAuthUser,
        resource == {R})
 when {{ principal.hasTag("role") &&
        (principal.getTag("role") == "netops-agent" || principal.getTag("role") == "noc-engineer") }};
+""", f"""// P1s the specialist may read incidents and nothing else
+permit(principal is AgentCore::OAuthUser,
+       action == {A("get_incident")},
+       resource == {R})
+when {{ principal.hasTag("role") && principal.getTag("role") == "netops-specialist" }};
+""", f"""// P4  only the lead agent may ask a team agent
+permit(principal is AgentCore::OAuthUser,
+       action == {A("ask_agent")},
+       resource == {R})
+when {{ principal.hasTag("role") && principal.getTag("role") == "netops-agent" &&
+       {_list(TEAM_AGENTS)}.contains(context.input.agent) }};
+""", f"""// P5  only a human engineer may decide an approval
+permit(principal is AgentCore::OAuthUser,
+       action == {A("decide_approval")},
+       resource == {R})
+when {{ principal.hasTag("role") && principal.getTag("role") == "noc-engineer" &&
+       ["approved", "denied"].contains(context.input.decision) }};
 """]
     for k in CATEGORIES:
         out.append(f"""// P2{k}  licensed autonomous remediation in category {k}
@@ -99,7 +117,7 @@ when {{ context.input.mode == "autonomous" &&
 
 def policy_names() -> list[str]:
     """Names in the order cedarpy assigns ids policy0, policy1, ..."""
-    return ["P1"] + [f"P2{k}" for k in CATEGORIES] + ["P3", "F1", "F1m", "F2"] + [f"F3{k}" for k in CATEGORIES]
+    return ["P1", "P1s", "P4", "P5"] + [f"P2{k}" for k in CATEGORIES] + ["P3", "F1", "F1m", "F2"] + [f"F3{k}" for k in CATEGORIES]
 
 
 def policy_statements(gateway: str = "GW") -> list[tuple[str, str]]:

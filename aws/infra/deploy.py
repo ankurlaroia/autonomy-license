@@ -27,21 +27,26 @@ import time
 
 from aws.cedar.gen_policies import policy_statements
 from aws.cedar.schema import gateway_tool_schemas, validate
+from aws.tool_lambda.team import DEFAULT_MODEL
 
 NAMES = {
     "lambda_role": "al-lambda-exec", "gateway_role": "al-gateway-exec",
     "tools_fn": "al-netops-tools", "interceptor_fn": "al-netops-interceptor", "pretoken_fn": "al-netops-pretoken",
     "pool": "al-netops", "resource_server": "netops", "scope": "invoke",
     "agent_client": "al-netops-agent", "engineer_client": "al-netops-engineer",
-    "engine": "al_netops", "gateway": "al-netops", "target": "NetOps",
+    "specialist_client": "al-netops-specialist",
+    "engine": "al_netops", "gateway": "al-netops", "target": "NetOps", "guardrail": "al-netops",
 }
+CLIENT_ROLES = {"agent_client": "netops-agent", "engineer_client": "noc-engineer",
+                "specialist_client": "netops-specialist"}
 HANDLERS = {"tools_fn": "aws.tool_lambda.handler.lambda_handler",
             "interceptor_fn": "aws.interceptor.handler.lambda_handler",
             "pretoken_fn": "aws.pretoken.handler.lambda_handler"}
 STATE = os.path.join("dist", "aws_state.json")
 DDB_PREFIX = "al"
 TABLES = {"licences": "jti", "warnings": "nonce",     # shared registry (license/registry_ddb.py)
-          "changes": "incident_id"}                    # cells changed per incident (aws/tool_lambda/ledger.py)
+          "changes": "incident_id",                    # cells changed per incident (aws/tool_lambda/ledger.py)
+          "approvals": "approval_id"}                  # human approvals (aws/tool_lambda/approvals.py)
 AUDIT_TABLE = f"{DDB_PREFIX}-audit"                    # lasting decision records (aws/audit.py), append-only
 ROLE_PATH = "/bb26/"                                   # hackathon accounts accept service roles only here,
 BOUNDARY = "policy/bb26-boundary/bb26-Boundary"        # and only with this permissions boundary
@@ -91,9 +96,30 @@ def role_request(name: str, trust: dict, account: str, boundary: bool) -> dict:
     return req
 
 
-def lambda_role_policy(account: str, region: str, kms_key: str | None = None) -> dict:
+def guardrail_request() -> dict:
+    """Prompt attacks are an input check; harmful content is checked both ways (organisers' kit: jailbreak and prompt
+    injection on input; violence, hate and misconduct on output). HIGH blocks from low confidence upward."""
+    harmful = [{"type": t, "inputStrength": "HIGH", "outputStrength": "HIGH"}
+               for t in ("VIOLENCE", "HATE", "MISCONDUCT", "INSULTS", "SEXUAL")]
+    return {"name": NAMES["guardrail"], "description": "Autonomy License: the specialist agent's model input and output",
+            "contentPolicyConfig": {"filtersConfig": [
+                {"type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "NONE"}, *harmful]},
+            "blockedInputMessaging": "Refused by the guardrail.", "blockedOutputsMessaging": "Withheld by the guardrail."}
+
+
+def bedrock_statements(account: str, region: str, guardrail_id: str, model_id: str) -> list[dict]:
+    """This one guardrail and this one model, nothing wider."""
+    return [{"Effect": "Allow", "Action": "bedrock:ApplyGuardrail",
+             "Resource": f"arn:aws:bedrock:{region}:{account}:guardrail/{guardrail_id}"},
+            {"Effect": "Allow", "Action": "bedrock:InvokeModel",
+             "Resource": f"arn:aws:bedrock:{region}::foundation-model/{model_id}"}]
+
+
+def lambda_role_policy(account: str, region: str, kms_key: str | None = None, guardrail_id: str | None = None,
+                       model_id: str = DEFAULT_MODEL) -> dict:
     """Lambdas read and update the shared registry, append to the audit table (PutItem only: they can never
-    change or delete a record) and, for a real licence, read the issuer public key."""
+    change or delete a record), for a real licence read the issuer public key and, for the specialist agent,
+    call one guardrail and one model."""
     tables = [f"arn:aws:dynamodb:{region}:{account}:table/{DDB_PREFIX}-{t}" for t in TABLES]
     stmts = [{"Effect": "Allow", "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem",
                                             "dynamodb:Scan"], "Resource": tables},
@@ -101,6 +127,8 @@ def lambda_role_policy(account: str, region: str, kms_key: str | None = None) ->
               "Resource": f"arn:aws:dynamodb:{region}:{account}:table/{AUDIT_TABLE}"}]
     if kms_key:
         stmts.append(kms_statement(account, region, kms_key))
+    if guardrail_id:
+        stmts += bedrock_statements(account, region, guardrail_id, model_id)
     return {"Version": "2012-10-17", "Statement": stmts}
 
 
@@ -269,6 +297,17 @@ class Deployer:   # pragma: no cover - needs AWS
         except self.iam.exceptions.NoSuchEntityException:
             return False
 
+    # 0 guardrail (the Lambda role and environment name it). Free to keep; pay per text checked.
+    def guardrail(self):
+        br = self.s.client("bedrock")
+        found = [g for g in br.list_guardrails()["guardrails"] if g["name"] == NAMES["guardrail"]]
+        gid = found[0]["id"] if found else br.create_guardrail(**guardrail_request())["guardrailId"]
+        versions = [g["version"] for g in br.list_guardrails(guardrailIdentifier=gid)["guardrails"]
+                    if g["version"] != "DRAFT"]
+        ver = max(versions, key=int) if versions else br.create_guardrail_version(guardrailIdentifier=gid)["version"]
+        self.state.update(guardrail_id=gid, guardrail_version=ver)
+        print("guardrail", gid, "version", ver)
+
     # 1 roles
     def roles(self):
         boundary = self.needs_boundary()
@@ -284,7 +323,8 @@ class Deployer:   # pragma: no cover - needs AWS
                 self.iam.attach_role_policy(RoleName=name, PolicyArn=f"arn:aws:iam::aws:policy/{managed}")
                 self.iam.put_role_policy(RoleName=name, PolicyName="al-registry",
                                          PolicyDocument=json.dumps(lambda_role_policy(
-                                             self.account, self.region, self.bundle_env.get("AL_ISSUER_KMS_KEY"))))
+                                             self.account, self.region, self.bundle_env.get("AL_ISSUER_KMS_KEY"),
+                                             self.state["guardrail_id"])))
             self.state[key] = arn
             print("role", name)
 
@@ -318,7 +358,9 @@ class Deployer:   # pragma: no cover - needs AWS
         code = open(self.zip_path, "rb").read()
         for key in HANDLERS:
             env = function_env({**self.bundle_env, "AL_DDB_PREFIX": DDB_PREFIX, "AL_AUDIT_TABLE": AUDIT_TABLE,
-                                "AL_RUN_ID": "undeclared"}, (extra or {}).get(key, {}))
+                                "AL_RUN_ID": "undeclared", "AL_GUARDRAIL_ID": self.state["guardrail_id"],
+                                "AL_GUARDRAIL_VERSION": self.state["guardrail_version"],
+                                "AL_MODEL_ID": DEFAULT_MODEL}, (extra or {}).get(key, {}))
             req = function_request(key, self.state["lambda_role"], env, code)
             name = req["FunctionName"]
             try:
@@ -360,7 +402,7 @@ class Deployer:   # pragma: no cover - needs AWS
             self.cog.create_resource_server(**resource_server_request(pool_id))
         existing = {c["ClientName"]: c["ClientId"]
                     for c in self.cog.list_user_pool_clients(UserPoolId=pool_id, MaxResults=60)["UserPoolClients"]}
-        for key in ("agent_client", "engineer_client"):
+        for key in CLIENT_ROLES:
             cid = existing.get(NAMES[key]) or \
                 self.cog.create_user_pool_client(**client_request(pool_id, key))["UserPoolClient"]["ClientId"]
             self.state[key] = cid
@@ -371,9 +413,9 @@ class Deployer:   # pragma: no cover - needs AWS
 
     def wire_env(self):
         iss = issuer_url(self.region, self.state["pool_id"])
-        clients = [self.state["agent_client"], self.state["engineer_client"]]
+        clients = [self.state[k] for k in CLIENT_ROLES]
         key = secrets.token_hex(32)                     # never written to disk
-        roles = {self.state["agent_client"]: "netops-agent", self.state["engineer_client"]: "noc-engineer"}
+        roles = {self.state[k]: role for k, role in CLIENT_ROLES.items()}
         self.functions(extra={
             "tools_fn": {"AL_CALLER_KEY": key},
             "interceptor_fn": {"AL_CALLER_KEY": key, "AL_JWKS_URL": iss + "/.well-known/jwks.json",
@@ -402,7 +444,7 @@ class Deployer:   # pragma: no cover - needs AWS
     def gateway(self):
         found = [g for g in self.ac.list_gateways().get("items", []) if g["name"] == NAMES["gateway"]]
         req = gateway_request(self.state["gateway_role"], self.region, self.state["pool_id"],
-                              [self.state["agent_client"], self.state["engineer_client"]], self.state["interceptor_fn"])
+                              [self.state[k] for k in CLIENT_ROLES], self.state["interceptor_fn"])
         if found:
             gid = found[0]["gatewayId"]
             cur = self.ac.get_gateway(gatewayIdentifier=gid)
@@ -459,7 +501,7 @@ class Deployer:   # pragma: no cover - needs AWS
         print("policy engine attached in", mode)
 
     def apply(self):
-        for step in (self.roles, self.tables, self.functions, self.cognito, self.wire_env, self.engine, self.gateway_permissions,
+        for step in (self.guardrail, self.roles, self.tables, self.functions, self.cognito, self.wire_env, self.engine, self.gateway_permissions,
                      self.gateway, self.target, self.policies):
             step()
             self.save()
@@ -474,18 +516,20 @@ def plan(region: str, account: str = "123456789012", kms_key: str | None = None)
     engine_arn = arn("bedrock-agentcore", "policy-engine/al_netops-PLACEHOLDER")
     gw_arn = arn("bedrock-agentcore", "gateway/al-netops-PLACEHOLDER")
     role = f"arn:aws:iam::{account}:role/"
-    out = [("iam.create_role", role_request(NAMES["lambda_role"], lambda_trust(), account, True)),
+    out = [("bedrock.create_guardrail", guardrail_request()),
+           ("bedrock.create_guardrail_version", {"guardrailIdentifier": "PLACEHOLDER"}),
+           ("iam.create_role", role_request(NAMES["lambda_role"], lambda_trust(), account, True)),
            ("iam.create_role", role_request(NAMES["gateway_role"], gateway_trust(account, region), account, True))]
     out += [("dynamodb.create_table", table_request(t)) for t in TABLES]
     out.append(("dynamodb.create_table", audit_table_request()))
     out.append(("iam.put_role_policy", {"RoleName": NAMES["lambda_role"], "PolicyName": "al-registry",
-                                        "PolicyDocument": json.dumps(lambda_role_policy(account, region, kms_key))}))
+                                        "PolicyDocument": json.dumps(lambda_role_policy(account, region, kms_key,
+                                                                                        "PLACEHOLDER"))}))
     out += [("lambda.create_function", function_request(k, role + NAMES["lambda_role"], {"AL_X": "1"}, b"zip"))
             for k in HANDLERS]
     out += [("cognito-idp.create_user_pool", user_pool_request(fns["pretoken_fn"])),
             ("cognito-idp.create_resource_server", resource_server_request("us-east-1_POOL")),
-            ("cognito-idp.create_user_pool_client", client_request("us-east-1_POOL", "agent_client")),
-            ("cognito-idp.create_user_pool_client", client_request("us-east-1_POOL", "engineer_client")),
+            *[("cognito-idp.create_user_pool_client", client_request("us-east-1_POOL", k)) for k in CLIENT_ROLES],
             ("bedrock-agentcore-control.create_policy_engine", {"name": NAMES["engine"]}),
             ("iam.put_role_policy", {"RoleName": NAMES["gateway_role"], "PolicyName": "netops-gateway",
                                      "PolicyDocument": json.dumps(gateway_role_policy(

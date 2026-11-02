@@ -1,4 +1,4 @@
-"""AgentCore Gateway Lambda target for the three NetOps tools.
+"""AgentCore Gateway Lambda target for the NetOps tools.
 
 Gateway passes the tool name in the Lambda context (client_context.custom['bedrockAgentCoreToolName'],
 format '<Target>___<tool>') and the tool arguments as the event. Confirm both in the Sunday smoke
@@ -18,7 +18,7 @@ from aws.caller import verify
 from aws.lambda_bootstrap import log_shape, trusted_from_env
 from aws.tool_lambda.tools import NetOpsTools
 
-ROLES = ("netops-agent", "noc-engineer")
+ROLES = ("netops-agent", "netops-specialist", "noc-engineer")
 
 
 def caller_role(context, attestation=None, tool: str = "", incident_id=None):
@@ -46,11 +46,14 @@ def lambda_handler(event, context, writer=None):
             writer.write("tool_call", {"trace_id": trace, "tool": tool, "role": principal["role"],
                                        "mode": args.get("mode"),
                                        "action": args.get("action") or args.get("proposed_action"),
-                                       "cells": sorted(set(args.get("cells", [])))}, args.get("incident_id"))
+                                       "cells": sorted(set(args.get("cells", []))),
+                                       "agent": args.get("agent"), "approval_id": args.get("approval_id"),
+                                       "decision": args.get("decision")}, args.get("incident_id"))
         return {"ok": True, "result": tools.dispatch(tool, principal, args)}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 
 if __name__ == "__main__":
-    print(json.dumps({"tools": ["get_incident", "apply_remediation", "request_human_approval"]}))
+    print(json.dumps({"tools": ["get_incident", "apply_remediation", "request_human_approval", "decide_approval",
+                                "ask_agent"]}))

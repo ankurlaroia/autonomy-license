@@ -9,12 +9,13 @@ Env:
   AL_ISSUER_PUBLIC_KEY_PEM  PEM of the issuer public key (smoke-test stub licence). Exactly one is required.
   AL_EXPECTED_FINGERPRINT   from the deployment registry, never from the agent
   AL_LOG_EVENT_SHAPE=1      log the structure (keys and types, never values) of each event and context
-  AL_DDB_PREFIX             when set, licence status and warnings come from the shared DynamoDB tables
-                            <prefix>-licences / <prefix>-warnings (license/registry_ddb.py) instead of SQLite
+  AL_DDB_PREFIX             when set, licence status, warnings, changed cells and approvals come from the shared
+                            DynamoDB tables <prefix>-licences / -warnings / -changes / -approvals instead of SQLite
+  AL_GUARDRAIL_ID, AL_GUARDRAIL_VERSION, AL_MODEL_ID  the specialist agent's guardrail and Bedrock model
 
-NOTE: each Lambda gets its own SQLite copy for audit, approvals and the simulator. Licence status and warnings
-must be shared (a revocation has to reach every Lambda), so with AL_DDB_PREFIX they live in DynamoDB.
-Approvals stay per container: request and execute an approval in the same warm container (smoke test scale).
+NOTE: each Lambda gets its own SQLite copy for audit and the simulator. Licence status, warnings, changed cells and
+approvals must be shared (a revocation or a decision has to reach every Lambda), so with AL_DDB_PREFIX they live in
+DynamoDB.
 """
 import functools
 import json
@@ -55,10 +56,18 @@ def trusted_from_env():
     prefix = os.environ.get("AL_DDB_PREFIX")
     if prefix:
         import boto3
+        from aws.tool_lambda.approvals import DynamoApprovals
         from aws.tool_lambda.ledger import DynamoLedger
         from license.registry_ddb import DynamoRegistry
         t.registry = DynamoRegistry(boto3.client("dynamodb"), prefix)
         t.ledger = DynamoLedger(boto3.client("dynamodb"), prefix)    # cells changed per incident, shared
+        t.approvals = DynamoApprovals(boto3.client("dynamodb"), prefix)    # request, decision and change, shared
+    if os.environ.get("AL_GUARDRAIL_ID"):     # without it there is no specialist, so ask_agent refuses (fail closed)
+        import boto3
+        from aws.tool_lambda.team import DEFAULT_MODEL, Specialist
+        t.specialist = Specialist(boto3.client("bedrock-runtime"), os.environ["AL_GUARDRAIL_ID"],
+                                  os.environ.get("AL_GUARDRAIL_VERSION", ""),
+                                  os.environ.get("AL_MODEL_ID", DEFAULT_MODEL))
     return t
 
 

@@ -5,7 +5,8 @@ through the deployed Gateway carrying that id, and its outputs and records writt
     python -m aws.infra.judged_run --profile fyuz --team-code <code> --units allow,deny
 
 Units (aws/evidence.py): licence (calibrate on the frozen split, KMS-sign, deploy with ENFORCE), allow, deny,
-adversarial, trace, pause (withdraws the licence, so it runs last; run `licence` again for a new one).
+adversarial, trace, team (lead, specialist and engineer), pause (withdraws the licence, so it runs last; run
+`licence` again for a new one).
 
 Bucket: the team data bucket (*-data-<account>-use2) when it exists, else al-evidence-<account>-<region> with
 versioning. Layout (guide): evidence/declared/<run_id>.json, evidence/runs/<run_id>/{items.jsonl, records.jsonl,
@@ -203,6 +204,28 @@ class Run:   # pragma: no cover - needs AWS
                                                                         "signer", "fingerprint")})
         return self.finish(decl, t0, items, {"licence": info})
 
+    def team_unit(self, client, info: dict, used: set):
+        """One case through the whole team. The engineer's steps are driven here with the engineer's token, so this
+        shows the checks, not a person's judgement; aws/infra/team.py lets a person make that decision."""
+        from aws.infra.team import ATTACK, TASK, pick_case
+        from aws.tool_lambda.ledger import DynamoLedger
+        from model.scorer import ScoreCache
+        h = self.hashes()
+        scores = ScoreCache(os.path.join(self.bundle, "data", "scores.jsonl"))
+        iid, action, cells = pick_case(self.bundle, json.load(open(os.path.join(self.data, "splits.json")))["heldout_order"],
+                                       scores, DynamoLedger(self.ddb, "al"), used)
+        used.add(iid)
+        plan = E.team_plan(iid, action, cells, TASK, ATTACK)
+        rid = E.run_id("team")
+        decl = E.declaration("team", rid, team_code=self.team, test_set_sha256=h["heldout"],
+                             model_fingerprint=scores.fingerprint, items=[{k: v for k, v in p.items() if k != "args"}
+                                                                          for p in plan], context=self.context(info))
+        t0 = self.declare(decl)
+        self.bind(rid)
+        items = client.run_plan(rid, plan, lambda rec: self.driver_record(rid, "driver_call", rec, iid))
+        self.bind(UNDECLARED)
+        return self.finish(decl, t0, items)
+
     def gateway_unit(self, unit: str, client, info: dict, used: set):
         from model.scorer import ScoreCache
         if not self.state.get("gateway_url"):
@@ -283,6 +306,31 @@ class TracedClient:   # pragma: no cover - needs AWS
         self.c.rpc(self.agent, "initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
                                               "clientInfo": {"name": "al-judged-run", "version": "1"}})
 
+    def run_plan(self, rid, plan, record=lambda rec: None):
+        """Run a team case (aws/evidence.py team_plan). Each identity keeps its own token."""
+        from aws.infra.smoke import outcome
+        tokens = {"agent_client": self.agent}
+        approval_id, note, items = "", "", []
+        case = f"{rid}/001"
+        for n, p in enumerate(plan, 1):
+            who = p["who"]
+            tokens.setdefault(who, self.c.token(who))
+            trace = case if p["shared"] else f"{case}/{n:02d}"
+            args = E.fill_step(p["args"], approval_id, note)
+            sent = time.time()
+            o = outcome(self.call_traced(tokens[who], p["tool"], args, trace))
+            res = (o["detail"].get("result") or {}) if o["decision"] == "ALLOW" and isinstance(o["detail"], dict) else {}
+            approval_id = res.get("approval_id", approval_id)
+            note = res.get("note", note)[:300]
+            out = {"item": p["item"], "step": p["step"], "who": who, "trace_id": trace, "sent_at": iso_ms(sent),
+                   "replied_at": iso_ms(time.time()), "expect": p["expect"], "observed": o["decision"],
+                   "detail": E.team_detail(o)}
+            mark = "ok " if out["observed"] == out["expect"] else "BAD"
+            print(f"  {mark} {p['step']:32} {out['observed']:16} expected {out['expect']}")
+            record({k: out[k] for k in out if k != "detail"})
+            items.append(out)
+        return items
+
     def call_traced(self, tok, tool, args, trace):
         import urllib.error
         import urllib.request
@@ -326,7 +374,7 @@ def main():   # pragma: no cover - needs AWS
     client = TracedClient(r.state, a.profile) if set(units) - {"licence"} else None
     used = set()
     for u in [u for u in E.ORDER if u in units and u != "licence"]:
-        results.append(r.gateway_unit(u, client, info, used))
+        results.append(r.team_unit(client, info, used) if u == "team" else r.gateway_unit(u, client, info, used))
     doc = judging_doc(a.team_code, r.bucket, r.account, r.region, results)
     body = json.dumps(doc, indent=1).encode()
     open("judging.json", "wb").write(body)

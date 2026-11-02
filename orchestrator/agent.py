@@ -97,7 +97,8 @@ class Engineer:
 
     def approve_and_execute(self, approval_id: str, cells_override: list[str] | None = None) -> dict:
         rec = self.approvals.get(approval_id)
-        self.approvals.decide(approval_id, self.sub)
+        if rec["decision"] == "pending":    # a replay goes on to the tool, which refuses and records it
+            self.approvals.decide(approval_id, self.sub)
         cells = cells_override or rec["request"]["cells"]
         tok = self.idp.mint_access_token(self.sub, "noc-engineer", self.operator)
         return self.gw.call(tok, "apply_remediation", {"incident_id": rec["incident_id"],

@@ -29,6 +29,7 @@ network. Licence status and warnings live in DynamoDB, so a withdrawal reaches e
 | Live allow, deny, attacks, trace, pause | `python -m aws.infra.judged_run --profile fyuz --team-code <code> --units allow,deny,adversarial,trace,pause` |
 | Live test (read-only) | `python tools/show_record.py --run-id <run_id> --item <TL-id>` |
 | Rebuild (no AWS) | `python tools/rebuild.py` |
+| A person's approval (changes state, not part of the read-only test) | `python -m aws.infra.team ask`, then `pending`, then `approve <id>` |
 
 Each run writes `evidence/declared/<run_id>.json` to the team bucket **before** it starts (unit, target, frozen
 test-set hash, model id, grader, the exact items), then its per-item outputs, records and a pass/fail record file

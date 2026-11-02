@@ -15,7 +15,7 @@ import hashlib
 import hmac
 import time
 
-ROLES = ("netops-agent", "noc-engineer")
+ROLES = ("netops-agent", "netops-specialist", "noc-engineer")
 TTL_S = 60
 
 

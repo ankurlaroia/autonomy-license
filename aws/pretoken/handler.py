@@ -15,7 +15,7 @@ import os
 from aws.lambda_bootstrap import log_shape, trusted_from_env
 from gateway.idp import pre_token_tags
 
-ROLES = ("netops-agent", "noc-engineer")
+ROLES = ("netops-agent", "netops-specialist", "noc-engineer")
 
 
 def client_role(client_id: str, env=os.environ) -> str:

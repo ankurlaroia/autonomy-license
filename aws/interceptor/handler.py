@@ -16,7 +16,7 @@ from license.verifier import verify_licence
 
 AGENT_TRUST_FIELDS = ("licence_valid", "license_valid", "score", "score_ok", "licence_ok", "category",
                       "cell_count", "threshold", "caller")
-ATTESTED_TOOLS = ("apply_remediation", "request_human_approval")
+ATTESTED_TOOLS = ("apply_remediation", "request_human_approval", "decide_approval", "ask_agent")
 
 
 def _untrusted(k: str) -> bool:
@@ -89,7 +89,8 @@ def _jwks(url: str):
     return _JWKS[url]
 
 
-TRACE_FIELDS = ("mode", "action", "cells", "cell_count", "category", "score_ok", "licence_ok")
+TRACE_FIELDS = ("mode", "action", "cells", "cell_count", "category", "score_ok", "licence_ok", "agent", "decision",
+                "approval_id")
 
 
 def lambda_handler(event, context, role_from_headers=None, writer=None):

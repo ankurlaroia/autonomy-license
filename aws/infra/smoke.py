@@ -84,7 +84,8 @@ class Client:   # pragma: no cover - needs AWS
         self.st = state
         cog = boto3.session.Session(profile_name=profile, region_name=state["region"]).client("cognito-idp")
         self._secret = {k: cog.describe_user_pool_client(UserPoolId=state["pool_id"], ClientId=state[k])
-                        ["UserPoolClient"]["ClientSecret"] for k in ("agent_client", "engineer_client")}
+                        ["UserPoolClient"]["ClientSecret"]
+                        for k in ("agent_client", "engineer_client", "specialist_client") if k in state}
         self.ids = 0
 
     def token(self, who: str) -> str:
