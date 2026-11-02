@@ -1,0 +1,25 @@
+# data, keys and local state: never committed (TeleLogs is gated; see DATA.md)
+state/
+dist/
+*.pem
+*.key
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+*.jsonl
+!evidence/**/*.jsonl
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# web console (Next.js)
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.vercel/

@@ -1,0 +1,122 @@
+[
+  {
+    "name": "get_incident",
+    "description": "Fetch a sanitised incident (engineering parameters and drive-test summary). Never returns the ground-truth cause.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string"
+        },
+        "trace_id": {
+          "type": "string",
+          "description": "Set by the interceptor from the JSON-RPC request id; any value the agent sends is overwritten."
+        }
+      },
+      "required": [
+        "incident_id"
+      ]
+    }
+  },
+  {
+    "name": "apply_remediation",
+    "description": "Apply one catalogue action to named simulated cells. Server recomputes cell_count, category and trust fields.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "autonomous",
+            "approved"
+          ]
+        },
+        "approval_id": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object"
+        },
+        "cell_count": {
+          "type": "integer",
+          "description": "overwritten by the interceptor"
+        },
+        "category": {
+          "type": "string",
+          "description": "overwritten by the interceptor"
+        },
+        "score_ok": {
+          "type": "boolean",
+          "description": "set by the interceptor"
+        },
+        "licence_ok": {
+          "type": "boolean",
+          "description": "set by the interceptor"
+        },
+        "caller": {
+          "type": "string",
+          "description": "set by the interceptor; any agent value is dropped"
+        },
+        "trace_id": {
+          "type": "string",
+          "description": "Set by the interceptor from the JSON-RPC request id; any value the agent sends is overwritten."
+        }
+      },
+      "required": [
+        "incident_id",
+        "action",
+        "cells",
+        "mode"
+      ]
+    }
+  },
+  {
+    "name": "request_human_approval",
+    "description": "Queue an exact action for a NOC engineer; approvals are single-use, expire in 10 minutes and are bound to a digest of incident, action, cells and parameters.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string"
+        },
+        "proposed_action": {
+          "type": "string"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
+        "caller": {
+          "type": "string",
+          "description": "set by the interceptor; any agent value is dropped"
+        },
+        "trace_id": {
+          "type": "string",
+          "description": "Set by the interceptor from the JSON-RPC request id; any value the agent sends is overwritten."
+        }
+      },
+      "required": [
+        "incident_id",
+        "proposed_action",
+        "reason"
+      ]
+    }
+  }
+]

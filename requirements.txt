@@ -1,0 +1,14 @@
+numpy
+scipy
+PyJWT>=2.8
+cryptography
+PyYAML
+cedarpy>=4.1
+streamlit
+fastapi
+uvicorn
+httpx
+pandas
+boto3
+pytest
+# Sunday, real model: transformers torch accelerate datasets

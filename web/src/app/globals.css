@@ -1,0 +1,516 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ tokens
+   Two modes, each tuned by hand, never inverted. Dark is the operations-centre wall at night; light is the
+   same room by day: cool porcelain and slate ink, with the signal colours deepened until they read on white.
+   Components use only these names. Channels (--x-rgb) exist so a colour can take any alpha: rgb(var(--x-rgb) / a). */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --abyss: #08111f;                         /* the wall */
+  --frost-rgb: 232 238 247;                 /* text */
+  --fg-rgb: 255 255 255;                    /* overlays: hovers, wells, hairlines */
+  --line-rgb: 148 170 200;
+  --signal-rgb: 69 214 176;                 /* allow, active licence */
+  --ember-rgb: 240 100 90;                  /* deny, hard rule, revoked */
+  --amber-rgb: 242 181 68;                  /* routed to a human */
+  --idle: #3a8fd0;
+  --faint-a: 0.56;
+  --withdrawn: #6b7684;
+
+  --panel-top: rgb(19 32 52 / 0.92);
+  --panel-bot: rgb(13 23 39 / 0.94);
+  --panel-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 24px 60px -32px rgb(0 0 0 / 0.9);
+  --dock-bg: rgb(10 19 33 / 0.92);
+  --sink: rgb(0 0 0 / 0.25);
+  --figure: rgb(13 23 39);                  /* box fill in diagrams */
+  --seal-ui: #4fb3a2;                       /* the seal's colour on the wall, not on paper */
+  --glow: #13355a;
+  --hex-line: #8fb0d6;
+  --hex-dot: #cfe0f5;
+  --hex-strength: 1;
+  --vignette: rgb(5 11 20 / 0.82);
+  --licence-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 40px 80px -30px rgb(0 0 0 / 0.95), 0 0 0 1px rgb(0 0 0 / 0.25);
+
+  --paper: #efebe1;                         /* the licence document, and nothing else */
+  --paper-ink: #1c2a38;
+  --seal: #127566;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --abyss: #e4e9ef;
+  --frost-rgb: 13 25 40;
+  --fg-rgb: 13 25 40;
+  --line-rgb: 64 86 114;
+  --signal-rgb: 0 110 88;
+  --ember-rgb: 182 46 34;
+  --amber-rgb: 134 82 0;
+  --idle: #2f6fae;
+  --faint-a: 0.66;
+  --withdrawn: #7a8594;
+
+  --panel-top: rgb(255 255 255 / 0.94);
+  --panel-bot: rgb(249 251 253 / 0.96);
+  --panel-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(16 32 52 / 0.06), 0 26px 50px -30px rgb(16 32 52 / 0.32);
+  --dock-bg: rgb(255 255 255 / 0.92);
+  --sink: rgb(13 25 40 / 0.07);
+  --figure: #ffffff;
+  --seal-ui: #11806d;
+  --glow: #ffffff;
+  --hex-line: #4d6688;
+  --hex-dot: #4d6688;
+  --hex-strength: 1.6;
+  --vignette: rgb(222 229 237 / 0.78);
+  --licence-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 34px 60px -30px rgb(16 32 52 / 0.42), 0 0 0 1px rgb(16 32 52 / 0.14);
+
+  --paper: #f3efe4;
+  --paper-ink: #1c2a38;
+  --seal: #127566;
+}
+:root {
+  --frost: rgb(var(--frost-rgb));
+  --frost-2: rgb(var(--frost-rgb) / 0.72);
+  --frost-3: rgb(var(--frost-rgb) / var(--faint-a));  /* faint text: each mode's own alpha, both >= 4.5:1 */
+  --line: rgb(var(--line-rgb) / 0.18);
+  --signal: rgb(var(--signal-rgb));
+  --ember: rgb(var(--ember-rgb));
+  --amber: rgb(var(--amber-rgb));
+
+  --mood: var(--signal);          /* panel tint; set per decision by the console */
+
+  --r-panel: 20px;
+  --r-card: 14px;
+  --r-chip: 999px;
+}
+
+/* ------------------------------------------------------------------ type and spacing scale
+   One step per role; components use these names and never a one-off size. All in rem, so stage mode scales them.
+     xs 12  code in full, fine print         caption 13  labels, chips, footnotes      sm 14  UI text, captions
+     body 15  running text in panels          base 16  emphasised running text          lg 18  card titles, lead, key figures
+     xl 20  script lines                      2xl 24  section titles, stat figures      3xl 28  decision titles
+     4xl 44  the licence's name               display  clamp(), set where used (h1)
+   Spacing: a panel (.glass) is inset p-5 sm:p-7, a card inside it p-4 sm:p-5; stacks use gap/space 5 between blocks,
+   2 to 3 inside one. */
+@theme {
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.6;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 2.75rem;
+  --text-4xl--line-height: 1;
+}
+
+@theme inline {
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --color-signal: var(--signal);
+  --color-ember: var(--ember);
+  --color-amber: var(--amber);
+  --color-frost: var(--frost);
+  --color-fg: rgb(var(--fg-rgb));
+  --color-sink: var(--sink);
+}
+
+html { background: var(--abyss); }
+body {
+  min-height: 100dvh;
+  color: var(--frost);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1;
+  overflow-x: hidden;
+}
+
+::selection { background: rgb(var(--signal-rgb) / 0.35); }
+
+/* one focus ring for every focusable thing, keyboard only; components may refine it, never remove it */
+@layer base {
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+  /* no last line of one word under a paragraph */
+  p, li, dd { text-wrap: pretty; }
+}
+
+@layer components {
+/* ------------------------------------------------------------------ instrument panels */
+.glass {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--r-panel);
+  background: linear-gradient(180deg, var(--panel-top), var(--panel-bot));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  box-shadow: var(--panel-shadow);
+}
+/* a faint tint from the last decision, top right */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(70% 45% at 100% 0%, color-mix(in oklab, var(--mood) 10%, transparent), transparent 70%);
+}
+.glass-card {
+  border-radius: var(--r-card);
+  background: rgb(var(--fg-rgb) / 0.028);
+  border: 1px solid rgb(var(--line-rgb) / 0.12);
+}
+
+/* ------------------------------------------------------------------ buttons */
+.lq-btn {
+  --tint: var(--frost-rgb);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0 1.25rem;
+  border-radius: var(--r-chip);
+  color: var(--frost);
+  font-weight: 600;
+  font-size: var(--text-body);
+  letter-spacing: -0.005em;
+  background: rgb(var(--tint) / 0.08);
+  border: 1px solid rgb(var(--tint) / 0.26);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  transition: transform 180ms cubic-bezier(.2, .8, .2, 1), background 180ms, border-color 180ms, opacity 200ms;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.lq-btn:hover:not(:disabled) { background: rgb(var(--tint) / 0.16); border-color: rgb(var(--tint) / 0.5); }
+.lq-btn:active:not(:disabled) { transform: scale(0.97); transition-duration: 90ms; }
+.lq-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+/* the button whose work is under way stays at full strength while the others step back */
+.lq-btn[aria-busy="true"]:disabled { opacity: 1; cursor: progress; background: rgb(var(--tint) / 0.16); border-color: rgb(var(--tint) / 0.5); }
+.lq-btn:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+.lq-btn[data-tone="signal"] { --tint: var(--signal-rgb); }
+.lq-btn[data-tone="ember"] { --tint: var(--ember-rgb); }
+.lq-btn[data-tone="amber"] { --tint: var(--amber-rgb); }
+.lq-btn[aria-pressed="true"],
+.lq-btn[aria-checked="true"],
+.lq-btn[data-active="true"] {
+  background: rgb(var(--tint) / 0.22);
+  border-color: rgb(var(--tint) / 0.7);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 0 0 1px rgb(var(--tint) / 0.35);
+}
+
+/* dock: the moment buttons in one control strip */
+.glass.dock {
+  border-radius: 999px;
+  padding: 8px;
+  background: var(--dock-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  scrollbar-width: none;
+}
+.dock::-webkit-scrollbar { display: none; }
+.dock .lq-btn { min-height: 52px; padding: 0 1.1rem 0 0.55rem; }
+@media (max-width: 1023px) { .dock .lq-btn { padding: 0 0.5rem; } }
+@media (max-width: 639px) {
+  .dock .lq-btn { min-height: 42px; padding: 0 3px; gap: 0; }
+  .dock-num { width: 32px; height: 32px; font-size: 0.85rem; }
+}
+.dock-num {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: rgb(var(--tint) / 0.16);
+}
+
+/* ------------------------------------------------------------------ pills + text */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--r-chip);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  background: rgb(var(--fg-rgb) / 0.06);
+  border: 1px solid rgb(var(--line-rgb) / 0.2);
+}
+.pill[data-tone="signal"] { color: var(--signal); background: rgb(var(--signal-rgb) / 0.10); border-color: rgb(var(--signal-rgb) / 0.32); }
+.pill[data-tone="ember"] { color: var(--ember); background: rgb(var(--ember-rgb) / 0.10); border-color: rgb(var(--ember-rgb) / 0.34); }
+.pill[data-tone="amber"] { color: var(--amber); background: rgb(var(--amber-rgb) / 0.10); border-color: rgb(var(--amber-rgb) / 0.32); }
+
+/* a disclosure: a chevron that turns when it opens, and a hover well so it reads as pressable */
+.disclosure > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: -0.4rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.4rem;
+  border-radius: 8px;
+  list-style: none;
+  cursor: pointer;
+  transition: color 150ms, background 150ms;
+}
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
+}
+.disclosure[open] > summary::before { transform: rotate(45deg) translate(-1px, -1px); }
+.disclosure > summary:hover { color: var(--frost); background: rgb(var(--fg-rgb) / 0.06); }
+.disclosure > summary:active { background: rgb(var(--fg-rgb) / 0.1); }
+
+.muted { color: var(--frost-2); }
+.faint { color: var(--frost-3); }
+
+/* ------------------------------------------------------------------ help prose */
+/* a reading measure of about 75 characters (ch is the width of a zero, wider than the average letter) */
+.help-body > p { color: var(--frost-2); line-height: 1.7; max-width: 62ch; }
+.help-body b { color: var(--frost); font-weight: 600; }
+.list { list-style: disc; padding-left: 1.2rem; max-width: 64ch; }
+.list li { margin: 0.45rem 0; color: var(--frost-2); line-height: 1.6; }
+.list li::marker { color: var(--signal); }
+html { scroll-behavior: smooth; }
+
+/* ------------------------------------------------------------------ backdrop: a radio-planning hex map */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 60% at 50% -15%, var(--glow) 0%, transparent 65%),
+    var(--abyss);
+  transition: filter 900ms ease;
+}
+.backdrop[data-mood="revoked"] { filter: saturate(0.15) brightness(0.8); }
+.hexmap path { transition: fill 900ms ease, stroke 900ms ease; }
+.ripple {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ripple 1.6s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+@keyframes ripple {
+  from { transform: scale(0.2); opacity: 0.9; }
+  to { transform: scale(6); opacity: 0; }
+}
+
+/* ------------------------------------------------------------------ the licence document */
+.ring-arc { transition: stroke-dashoffset 1200ms cubic-bezier(.2, .8, .2, 1), stroke 600ms; }
+.licence {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 10px;
+  color: var(--paper-ink);
+  background: linear-gradient(165deg, #f6f3ea 0%, var(--paper) 55%, #e2ddcf 100%);
+  box-shadow: var(--licence-shadow);
+  transition: background 700ms ease;
+}
+.licence[data-state="revoked"] { background: linear-gradient(165deg, #e9e7e2 0%, #dcdad4 100%); }
+.licence[data-state="none"] {
+  background: rgb(var(--fg-rgb) / 0.025);
+  color: var(--frost-2);
+  box-shadow: none;
+  outline: 1.5px dashed rgb(var(--line-rgb) / 0.32);
+  outline-offset: -1.5px;
+}
+/* the revoked licence a re-issued one replaced, its top edge showing above the new sheet */
+.licence.licence-under {
+  position: absolute;
+  inset: 0 0 1.5rem 0;
+  transform-origin: 50% 0;
+  transform: scale(0.965) rotate(-1.2deg);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.08), 0 0 0 1px rgb(16 32 52 / 0.12);
+}
+/* on re-issue it starts where the licence was and lifts back as the new sheet lands over it */
+.licence-under.lift-back { animation: lift-back 700ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes lift-back { from { transform: translateY(2rem) scale(1) rotate(0deg); } }
+.licence > * { transition: filter 700ms ease; }
+.licence[data-state="revoked"] > :not(.void) { filter: saturate(0.15) brightness(0.88); }
+.licence dt { font-size: var(--text-caption); color: rgb(28 42 56 / 0.6); }
+.licence[data-state="none"] dt { color: var(--frost-3); }
+.licence dd { font-weight: 650; font-size: var(--text-body); letter-spacing: -0.005em; }
+.engraved { font-family: var(--font-engraved), Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+.serial { font-family: var(--font-serial), ui-monospace, monospace; font-size: var(--text-caption); }
+
+/* the seal lands once when a licence is issued; the void stamp lands once when it is withdrawn */
+/* the keyframes carry the stamp's settle, so the easing only decelerates */
+.stamp-in { animation: stamp 640ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes stamp {
+  0% { opacity: 0; transform: scale(1.8) rotate(-18deg); }
+  62% { opacity: 1; transform: scale(0.95) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.void {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  z-index: 3;
+  transform: translate(-50%, -50%) rotate(-14deg);
+  padding: 0.2rem 1rem;
+  border: 5px double #b4322a;
+  border-radius: 8px;
+  color: #b4322a;
+  font-weight: 800;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  letter-spacing: 0.06em;
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+.void.stamp-in { animation: void-in 520ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes void-in {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-14deg) scale(2.2); }
+  100% { opacity: 0.9; transform: translate(-50%, -50%) rotate(-14deg) scale(1); }
+}
+
+/* reveal for a new decision (answers the button press) */
+.reveal { animation: reveal 480ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* waiting on the engine: placeholders shimmer, and appear only after a beat so a fast local load never flashes them */
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgb(var(--fg-rgb) / 0.05) 25%, rgb(var(--fg-rgb) / 0.11) 50%, rgb(var(--fg-rgb) / 0.05) 75%) 0 0 / 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+.late { animation: late 300ms 250ms ease both; }
+@keyframes late { from { opacity: 0; } }
+
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* path rail */
+.node {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--line-rgb) / 0.2);
+  background: rgb(var(--fg-rgb) / 0.04);
+  transition: all 400ms;
+}
+.node[data-s="pass"] { background: rgb(var(--signal-rgb) / 0.14); border-color: rgb(var(--signal-rgb) / 0.55); color: var(--signal); }
+.node[data-s="deny"] { background: rgb(var(--ember-rgb) / 0.18); border-color: rgb(var(--ember-rgb) / 0.75); color: var(--ember); }
+.node[data-s="human"] { background: rgb(var(--amber-rgb) / 0.14); border-color: rgb(var(--amber-rgb) / 0.55); color: var(--amber); }
+.node[data-s="skip"] { opacity: 0.35; }
+/* a new decision walks the path in order: the call reaching each check in turn */
+.rail-in:not([data-s="skip"]) { animation: node-in 420ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes node-in {
+  from { opacity: 0.15; transform: scale(0.82); box-shadow: none; }
+  to { opacity: 1; transform: none; }
+}
+
+.scroll-fade { mask-image: linear-gradient(180deg, #000 85%, transparent); }
+
+/* audit timeline: time | rail | what happened | incident and sequence. The rail runs through every row; each
+   row's node takes the row's tone (--tone); a licence event is a milestone, a ring on a tinted band. */
+.timeline-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.75rem 1.25rem minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  align-items: center;
+  padding-right: 0.75rem;
+  border-radius: 10px;
+}
+.timeline-row > :first-child { text-align: right; }
+.timeline-row::before {
+  content: "";
+  position: absolute;
+  left: calc(4.75rem + 0.75rem + 0.625rem - 1px);
+  top: 0;
+  bottom: -0.75rem;
+  width: 2px;
+  background: rgb(var(--line-rgb) / 0.18);
+}
+.timeline-row:last-child::before { bottom: 50%; }
+.timeline-node {
+  position: relative;
+  justify-self: center;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--tone);
+  box-shadow: 0 0 0 3px var(--abyss);
+}
+.timeline-row[data-milestone] { background: color-mix(in oklab, var(--tone) 9%, transparent); }
+.timeline-row[data-milestone] .timeline-node {
+  width: 15px;
+  height: 15px;
+  background: var(--abyss);
+  border: 3px solid var(--tone);
+}
+@media (max-width: 639px) {
+  .timeline-row { grid-template-columns: 4rem 1.25rem minmax(0, 1fr); }
+  .timeline-row::before { left: calc(4rem + 0.75rem + 0.625rem - 1px); }
+}
+}
+
+/* ------------------------------------------------------------------ stage mode: the console on a projector */
+/* Every size is in rem, so one root size scales the whole stage to the screen. Bounded by height first, so a
+   moment fits a 16:9 projector; unlayered so the licence's width here beats its utility class. */
+html[data-stage] { font-size: clamp(16px, min(2.3vh, 1.3vw), 26px); scroll-behavior: auto; }
+.stage {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem max(1.25rem, 2.5vw);
+}
+.stage-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+.stage-main .licence { max-width: 22rem; }
+@media (max-width: 899px) { .stage-main { grid-template-columns: minmax(0, 1fr); } }
+.stage-step {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  padding-top: 0.5rem;
+  border-top: 3px solid rgb(var(--line-rgb) / 0.22);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  color: var(--frost-3);
+  transition: border-color 400ms, color 400ms;
+}
+.stage-step[data-s="done"] { border-color: rgb(var(--signal-rgb) / 0.45); color: var(--frost-2); }
+.stage-step[data-s="now"] { border-color: var(--signal); color: var(--frost); }
+.stage-step[data-s="now"][data-tone="ember"] { border-color: var(--ember); }
+.stage-step[data-s="now"][data-tone="amber"] { border-color: var(--amber); }
+/* one point per moment: supporting detail stays in the console, paired traces sit side by side */
+html[data-stage] .stage-hide { display: none; }
+html[data-stage] .trace-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
