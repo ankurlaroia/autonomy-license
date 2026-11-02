@@ -18,7 +18,8 @@ import argparse
 from common.catalogue import AUTO_ACTIONS, BLAST_RADIUS, CATEGORIES, NEVER_AUTONOMOUS
 
 TARGET = "NetOps"
-TEAM_AGENTS = ("specialist",)
+TEAM_AGENTS = ("specialist", "planner")
+ATTACK_LIMIT, HARM_LIMIT = "0.4", "0.2"      # the organisers' kit's thresholds
 
 
 def _list(xs):
@@ -97,6 +98,12 @@ forbid(principal is AgentCore::OAuthUser,
        resource == {R})
 unless {{ context.input has cell_count }};
 
+// F4  a withdrawn model is not called. model_ok is server-computed; without it the call is refused (fail closed)
+forbid(principal is AgentCore::OAuthUser,
+       action == {A("ask_agent")},
+       resource == {R})
+unless {{ context.input has model_ok && context.input.model_ok == true }};
+
 // F2  hard rule: never-autonomous actions
 forbid(principal is AgentCore::OAuthUser,
        action == {A("apply_remediation")},
@@ -115,9 +122,43 @@ when {{ context.input.mode == "autonomous" &&
     return "\n".join(out)
 
 
+def _prompt_attack_ok(field: str) -> str:
+    """Per-category scores: the organisers' kit found .maxConfidenceScore() passes validation, then fails every call."""
+    cats = ("JAILBREAK", "PROMPT_INJECTION")
+    return "\n  && ".join(f'BedrockGuardrails::PromptAttack({_list(cats)}, [{field}])["{c}"]'
+                          f'.confidenceScore.lessThanOrEqual(decimal("{ATTACK_LIMIT}"))' for c in cats)
+
+
+def guardrail_policies(gateway: str = "GW") -> dict[str, str]:
+    """The Gateway's own guardrail rules. `when guardrails` is an AgentCore extension that cedarpy cannot parse, so these
+    replace or join the set at deploy time only; AgentCore validates them, and the live `team` unit shows them working.
+    P4g keeps the same conditions as the plain P4 in policies(), which the local tests decide on."""
+    R = f'AgentCore::Gateway::"{gateway}"'
+    act = f'AgentCore::Action::"{TARGET}___ask_agent"'
+    paths = '["$.content[*].text", "$.result.content[*].text"]'
+    harm = ("VIOLENCE", "HATE", "MISCONDUCT")
+    unsafe = "\n  || ".join(f'BedrockGuardrails::ContentFilter({_list(harm)}, {paths})["{c}"]'
+                            f'.confidenceScore.greaterThan(decimal("{HARM_LIMIT}"))' for c in harm)
+    return {"P4g": f"""// P4g  only the lead agent may ask a team agent, and a prompt attack in the task is refused here
+permit(principal is AgentCore::OAuthUser,
+       action == {act},
+       resource == {R})
+when guardrails {{
+  {_prompt_attack_ok("context.input.task")}
+}}
+unless {{ !(principal.hasTag("role") && principal.getTag("role") == "netops-agent" &&
+           {_list(TEAM_AGENTS)}.contains(context.input.agent)) }};""",
+            # G1: a harmful reply from a team agent is withheld from the caller. The service reads the effect from the
+            # very start of the text, so no comment comes first.
+            "G1": f"""suppressOutput (principal, action == {act}, resource == {R})
+when guardrails {{
+  {unsafe}
+}};"""}
+
+
 def policy_names() -> list[str]:
     """Names in the order cedarpy assigns ids policy0, policy1, ..."""
-    return ["P1", "P1s", "P4", "P5"] + [f"P2{k}" for k in CATEGORIES] + ["P3", "F1", "F1m", "F2"] + [f"F3{k}" for k in CATEGORIES]
+    return ["P1", "P1s", "P4", "P5"] + [f"P2{k}" for k in CATEGORIES] + ["P3", "F1", "F1m", "F4", "F2"] + [f"F3{k}" for k in CATEGORIES]
 
 
 def policy_statements(gateway: str = "GW") -> list[tuple[str, str]]:

@@ -16,7 +16,7 @@ permit(principal is AgentCore::OAuthUser,
        action == AgentCore::Action::"NetOps___ask_agent",
        resource == AgentCore::Gateway::"GW")
 when { principal.hasTag("role") && principal.getTag("role") == "netops-agent" &&
-       ["specialist"].contains(context.input.agent) };
+       ["specialist", "planner"].contains(context.input.agent) };
 
 // P5  only a human engineer may decide an approval
 permit(principal is AgentCore::OAuthUser,
@@ -107,6 +107,12 @@ forbid(principal is AgentCore::OAuthUser,
        action == AgentCore::Action::"NetOps___apply_remediation",
        resource == AgentCore::Gateway::"GW")
 unless { context.input has cell_count };
+
+// F4  a withdrawn model is not called. model_ok is server-computed; without it the call is refused (fail closed)
+forbid(principal is AgentCore::OAuthUser,
+       action == AgentCore::Action::"NetOps___ask_agent",
+       resource == AgentCore::Gateway::"GW")
+unless { context.input has model_ok && context.input.model_ok == true };
 
 // F2  hard rule: never-autonomous actions
 forbid(principal is AgentCore::OAuthUser,

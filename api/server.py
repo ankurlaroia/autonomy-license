@@ -227,6 +227,26 @@ def live_new_licence(request: Request):
     return _live_do(_link(request, write=True).new_licence)
 
 
+@app.post("/live/models/{op}")
+def live_models(op: str, request: Request):
+    return _live_do(_link(request, write=True).models, op)
+
+
+@app.post("/live/team/ask")
+def live_team_ask(request: Request):
+    return _live_do(_link(request, write=True).team_ask)
+
+
+@app.get("/live/team/pending")
+def live_team_pending(request: Request):
+    return _live_do(_link(request).team_pending)
+
+
+@app.post("/live/team/decide/{approval_id}/{decision}")
+def live_team_decide(approval_id: str, decision: str, request: Request):
+    return _live_do(_link(request, write=True).team_decide, approval_id, decision)
+
+
 @app.get("/alphas")
 def get_alphas():
     with _lock:

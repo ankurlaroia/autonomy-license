@@ -25,8 +25,9 @@ import os
 import secrets
 import time
 
-from aws.cedar.gen_policies import policy_statements
+from aws.cedar.gen_policies import guardrail_policies, policy_statements
 from aws.cedar.schema import gateway_tool_schemas, validate
+from aws.tool_lambda.models import CLASSIFIER, DynamoModels
 from aws.tool_lambda.team import DEFAULT_MODEL
 
 NAMES = {
@@ -46,7 +47,8 @@ STATE = os.path.join("dist", "aws_state.json")
 DDB_PREFIX = "al"
 TABLES = {"licences": "jti", "warnings": "nonce",     # shared registry (license/registry_ddb.py)
           "changes": "incident_id",                    # cells changed per incident (aws/tool_lambda/ledger.py)
-          "approvals": "approval_id"}                  # human approvals (aws/tool_lambda/approvals.py)
+          "approvals": "approval_id",                  # human approvals (aws/tool_lambda/approvals.py)
+          "models": "model_id"}                        # withdrawn models (aws/tool_lambda/models.py)
 AUDIT_TABLE = f"{DDB_PREFIX}-audit"                    # lasting decision records (aws/audit.py), append-only
 ROLE_PATH = "/bb26/"                                   # hackathon accounts accept service roles only here,
 BOUNDARY = "policy/bb26-boundary/bb26-Boundary"        # and only with this permissions boundary
@@ -133,14 +135,16 @@ def lambda_role_policy(account: str, region: str, kms_key: str | None = None, gu
 
 
 def gateway_role_policy(account: str, region: str, fn_arns: list[str], engine_arn: str) -> dict:
-    """Invoke the target and interceptor; evaluate Cedar (AgentCore policy-permissions guide)."""
+    """Invoke the target and interceptor; evaluate Cedar (AgentCore policy-permissions guide), including its guardrail
+    checks, which name no resource (organisers' kit)."""
     gateways = f"arn:aws:bedrock-agentcore:{region}:{account}:gateway/*"
     return {"Version": "2012-10-17", "Statement": [
         {"Effect": "Allow", "Action": "lambda:InvokeFunction", "Resource": fn_arns},
         {"Effect": "Allow", "Action": "bedrock-agentcore:GetPolicyEngine", "Resource": [engine_arn]},
         {"Effect": "Allow", "Action": ["bedrock-agentcore:AuthorizeAction",
                                        "bedrock-agentcore:PartiallyAuthorizeActions"],
-         "Resource": [engine_arn, gateways]}]}
+         "Resource": [engine_arn, gateways]},
+        {"Effect": "Allow", "Action": "bedrock:InvokeGuardrailChecks", "Resource": "*"}]}
 
 
 def function_request(key: str, role_arn: str, env: dict, zip_bytes: bytes) -> dict:
@@ -195,9 +199,19 @@ def policy_requests(engine_id: str, gateway_arn: str) -> list[dict]:
     errors = validate(gateway_arn)
     if errors:
         raise SystemExit("policy set fails strict validation:\n" + "\n".join(errors))
+    guarded = guardrail_policies(gateway_arn)
+    pairs = []
+    for name, text in policy_statements(gateway_arn):
+        if name == "P4":        # P4g is P4 plus the guardrail; a policy's type cannot change, so it has its own name
+            pairs += [("P4g", guarded["P4g"]), ("G1", guarded["G1"])]
+        else:
+            pairs.append((name, text))
     return [{"policyEngineId": engine_id, "name": name, "description": f"Autonomy License {name}",
-             "definition": {"cedar": {"statement": text}}, "validationMode": "FAIL_ON_ANY_FINDINGS"}
-            for name, text in policy_statements(gateway_arn)]
+             # the Cedar parser behind the "cedar" field rejects `when guardrails`; the "policy" field accepts it
+             "definition": {"policy" if name in guarded else "cedar": {"statement": text}},
+             # the validator calls a suppressOutput rule overly restrictive by design (organisers' kit)
+             "validationMode": "IGNORE_ALL_FINDINGS" if name == "G1" else "FAIL_ON_ANY_FINDINGS"}
+            for name, text in pairs]
 
 
 def all_items(list_fn, key: str, **kw) -> list:
@@ -545,6 +559,20 @@ def plan(region: str, account: str = "123456789012", kms_key: str | None = None)
     return out
 
 
+def models_command(ddb, op: str, reason: str = "aws.infra.deploy models") -> dict:
+    """Withdraw or restore every model the stack uses, and leave a lasting record of it."""
+    from aws.audit import AuditWriter, UNDECLARED
+    if op not in ("status", "withdraw", "restore"):
+        raise SystemExit("models status|withdraw|restore")
+    reg = DynamoModels(ddb, DDB_PREFIX)
+    if op != "status":
+        for m in (CLASSIFIER, DEFAULT_MODEL):
+            reg.set_status(m, "withdrawn" if op == "withdraw" else "active", reason)
+        AuditWriter(ddb, AUDIT_TABLE, UNDECLARED, "driver", out=lambda _: None).write(
+            "model_control", {"op": op, "models": [CLASSIFIER, DEFAULT_MODEL], "reason": reason})
+    return {m: reg.status(m) for m in (CLASSIFIER, DEFAULT_MODEL)}
+
+
 def warn(d, arg, keys_dir="state/keys", sender="B"):   # pragma: no cover - needs AWS
     """P1 moment 6 on AWS: operator B signs a reviewer-confirmed warning; the receiver verifies it against the
     federation key registry and writes it to the shared table, so every Lambda masks that category."""
@@ -565,8 +593,9 @@ def warn(d, arg, keys_dir="state/keys", sender="B"):   # pragma: no cover - need
 
 def main():   # pragma: no cover - CLI
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["plan", "apply", "mode", "status", "licence", "warn"])
-    ap.add_argument("arg", nargs="?", help="mode: LOG_ONLY|ENFORCE; licence: status|revoke; warn: k1..k4|clear")
+    ap.add_argument("cmd", choices=["plan", "apply", "mode", "status", "licence", "warn", "models"])
+    ap.add_argument("arg", nargs="?", help="mode: LOG_ONLY|ENFORCE; licence: status|revoke; warn: k1..k4|clear; "
+                                           "models: status|withdraw|restore")
     ap.add_argument("--region", help="default: the profile's region, else us-east-2")
     ap.add_argument("--profile")
     ap.add_argument("--bundle", default="dist/bundle")
@@ -593,6 +622,9 @@ def main():   # pragma: no cover - CLI
         return
     if a.cmd == "warn":
         print(json.dumps(warn(d, a.arg)))
+        return
+    if a.cmd == "models":
+        print(json.dumps(models_command(d.s.client("dynamodb"), a.arg or "status")))
         return
     if a.cmd == "apply":
         d.apply()

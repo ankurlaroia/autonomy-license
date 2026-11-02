@@ -130,6 +130,7 @@ export type LiveStatus = {
   policy_mode?: string | null;
   stack?: "running" | "paused";
   licence?: { jti: string; status: string } | null;
+  models?: string;
   checked_at?: string;
 };
 
@@ -157,6 +158,25 @@ export type LiveCall = {
   sent_at: string;
   replied_at: string;
   gate: { decision: "PERMIT" | "FORBID" | "NOT_REACHED" | "UNKNOWN"; policy?: string | null; basis: string };
+};
+
+export type LiveApproval = {
+  approval_id: string;
+  incident: string;
+  action: string | null;
+  cells: number;
+  note: string | null;
+  created_at?: string;
+};
+
+export type LiveTeamAsk = { trace_id: string; approval_id: string; incident: string; action: string; cells: number; note: string };
+
+export type LiveDecision = {
+  trace_id: string;
+  approval_id: string;
+  incident: string;
+  decision: "approved" | "denied";
+  change: { decision: string; action_id?: string | null; resolved?: boolean | null; detail?: string | null } | null;
 };
 
 export type AlphaRow = {
@@ -197,6 +217,10 @@ export const api = {
   livePause: () => call<LiveStatus>("/live/stack/pause", LIVE_POST),
   liveWithdraw: () => call<LiveStatus>("/live/licence/withdraw", LIVE_POST),
   liveNewLicence: () => call<LiveStatus>("/live/licence/new", LIVE_POST),
+  liveModels: (op: "withdraw" | "restore") => call<LiveStatus>(`/live/models/${op}`, LIVE_POST),
+  liveTeamAsk: () => call<LiveTeamAsk>("/live/team/ask", LIVE_POST),
+  liveTeamPending: () => call<LiveApproval[]>("/live/team/pending"),
+  liveTeamDecide: (id: string, d: "approved" | "denied") => call<LiveDecision>(`/live/team/decide/${encodeURIComponent(id)}/${d}`, LIVE_POST),
 };
 
 export const MOMENTS: { id: MomentId; n?: number; label: string; hint: string; needsLicence: boolean; tone?: string }[] = [

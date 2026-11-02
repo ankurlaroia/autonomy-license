@@ -156,7 +156,7 @@
   },
   {
     "name": "ask_agent",
-    "description": "The lead agent asks a team agent for a handover note. Advice only: it changes nothing. Bedrock Guardrails check the model's input and output.",
+    "description": "The lead agent asks a team agent: the specialist for a handover note, or the planner for the next step from a fixed list. Advice only: it changes nothing. Bedrock Guardrails check the model's input and output.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -166,11 +166,16 @@
         "agent": {
           "type": "string",
           "enum": [
-            "specialist"
+            "specialist",
+            "planner"
           ]
         },
         "task": {
           "type": "string"
+        },
+        "model_ok": {
+          "type": "boolean",
+          "description": "set by the interceptor"
         },
         "caller": {
           "type": "string",

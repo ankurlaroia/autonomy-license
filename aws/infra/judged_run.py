@@ -5,8 +5,8 @@ through the deployed Gateway carrying that id, and its outputs and records writt
     python -m aws.infra.judged_run --profile fyuz --team-code <code> --units allow,deny
 
 Units (aws/evidence.py): licence (calibrate on the frozen split, KMS-sign, deploy with ENFORCE), allow, deny,
-adversarial, trace, team (lead, specialist and engineer), pause (withdraws the licence, so it runs last; run
-`licence` again for a new one).
+adversarial, trace, team (lead, specialist and engineer), lead (a model chooses the lead's steps), pause (withdraws
+the licence and, for the length of the unit, the models, so it runs last; run `licence` again for a new licence).
 
 Bucket: the team data bucket (*-data-<account>-use2) when it exists, else al-evidence-<account>-<region> with
 versioning. Layout (guide): evidence/declared/<run_id>.json, evidence/runs/<run_id>/{items.jsonl, records.jsonl,
@@ -226,6 +226,39 @@ class Run:   # pragma: no cover - needs AWS
         self.bind(UNDECLARED)
         return self.finish(decl, t0, items)
 
+    def lead_unit(self, client, info: dict, used: set, n: int = 3):
+        """A model chooses the lead's steps, so the declaration names the cases and the outcomes that count, not steps."""
+        from aws.infra.smoke import outcome
+        from aws.infra.team import pick_case, run_lead
+        from aws.tool_lambda.ledger import DynamoLedger
+        from model.scorer import ScoreCache
+        h = self.hashes()
+        scores = ScoreCache(os.path.join(self.bundle, "data", "scores.jsonl"))
+        order = json.load(open(os.path.join(self.data, "splits.json")))["heldout_order"]
+        cases = []
+        for _ in range(n):
+            cases.append(pick_case(self.bundle, order, scores, DynamoLedger(self.ddb, "al"), used))
+            used.add(cases[-1][0])
+        rid = E.run_id("lead")
+        decl = E.declaration("lead", rid, team_code=self.team, test_set_sha256=h["heldout"],
+                             model_fingerprint=scores.fingerprint,
+                             items=[{"item": c[0], "expect": "applied or approval_queued"} for c in cases],
+                             context=self.context(info))
+        t0 = self.declare(decl)
+        self.bind(rid)
+        items = []
+        for k, (iid, action, cells) in enumerate(cases, 1):
+            trace, sent = f"{rid}/{k:03d}", time.time()
+            res = run_lead(lambda tool, args: outcome(client.call_traced(client.agent, tool, args, trace)),
+                           iid, action, cells)
+            out = {"item": iid, "trace_id": trace, "sent_at": iso_ms(sent), "replied_at": iso_ms(time.time()),
+                   "expect": "applied or approval_queued", "observed": res["ended"], "steps": res["steps"]}
+            print(f"  {res['ended']:16} {[d['step'] + ':' + d['decision'] for d in res['steps']]}")
+            self.driver_record(rid, "driver_call", out, iid)
+            items.append(out)
+        self.bind(UNDECLARED)
+        return self.finish(decl, t0, items)
+
     def gateway_unit(self, unit: str, client, info: dict, used: set):
         from model.scorer import ScoreCache
         if not self.state.get("gateway_url"):
@@ -246,6 +279,10 @@ class Run:   # pragma: no cover - needs AWS
             plan = E.gateway_items(unit, inc, scores, order, info["threshold"], n=10 if unit != "trace" else 5,
                                    skip=used)
         used.update(p["item"] for p in plan)
+        if unit == "pause" and plan:     # the call to the withdrawn team model
+            from aws.infra.team import TASK
+            plan.append({"item": plan[0]["item"], "tool": "ask_agent", "expect": "DENY",
+                         "args": {"incident_id": plan[0]["item"], "agent": "specialist", "task": TASK}})
         decl = E.declaration(unit, rid, team_code=self.team, test_set_sha256=h["heldout"],
                              model_fingerprint=scores.fingerprint,
                              items=[{k: v for k, v in p.items() if k != "args"} for p in plan],
@@ -259,7 +296,13 @@ class Run:   # pragma: no cover - needs AWS
             reg.set_status(jti, "revoked", f"pause unit {rid}")
             self.driver_record(rid, "licence_withdrawn", {"jti": jti, "status": reg.status(jti)})
             print(f"  licence {jti} withdrawn")
+            from aws.infra.deploy import models_command
+            state = models_command(self.ddb, "withdraw", f"pause unit {rid}")
+            self.driver_record(rid, "models_withdrawn", state)
+            print(f"  models withdrawn: {sorted(state)}")
         items = [self.call(client, rid, n, p) for n, p in enumerate(plan, 1)]
+        if unit == "pause":     # the licence stays withdrawn; the models come back so the next licence can use them
+            self.driver_record(rid, "models_restored", models_command(self.ddb, "restore", f"pause unit {rid}"))
         self.bind(UNDECLARED)
         return self.finish(decl, t0, items)
 
@@ -271,6 +314,14 @@ class Run:   # pragma: no cover - needs AWS
             r = client.call_traced(client.agent, "apply_remediation", p["setup"], f"{trace}s")
             self.driver_record(rid, "driver_setup_call", {"trace_id": f"{trace}s", "cells": p["setup"]["cells"],
                                                           "observed": outcome(r)["decision"]}, p["item"])
+        if "tool" in p:
+            sent = time.time()
+            o = outcome(client.call_traced(client.agent, p["tool"], p["args"], trace))
+            out = {"item": p["item"], "trace_id": trace, "sent_at": iso_ms(sent), "replied_at": iso_ms(time.time()),
+                   "expect": p["expect"], "tool": p["tool"], "observed": o["decision"], "detail": E.team_detail(o)}
+            print(f"  {o['decision']:16} {p['tool']} (withdrawn model)")
+            self.driver_record(rid, "driver_call", {k: out[k] for k in out if k != "detail"}, p["item"])
+            return out
         if "attack" in p:
             tok = {"agent": client.agent, "none": "", "tampered": tamper(client.agent)}[p["token"]]
             args = p["args"]
@@ -374,7 +425,8 @@ def main():   # pragma: no cover - needs AWS
     client = TracedClient(r.state, a.profile) if set(units) - {"licence"} else None
     used = set()
     for u in [u for u in E.ORDER if u in units and u != "licence"]:
-        results.append(r.team_unit(client, info, used) if u == "team" else r.gateway_unit(u, client, info, used))
+        special = {"team": r.team_unit, "lead": r.lead_unit}.get(u)
+        results.append(special(client, info, used) if special else r.gateway_unit(u, client, info, used))
     doc = judging_doc(a.team_code, r.bucket, r.account, r.region, results)
     body = json.dumps(doc, indent=1).encode()
     open("judging.json", "wb").write(body)

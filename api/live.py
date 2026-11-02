@@ -2,8 +2,8 @@
 
 Off unless AL_LIVE=1, because it acts with this machine's AWS sign-in: the hosted console never sets it. Live calls
 are recorded under the run id "undeclared", so they can never be mistaken for a declared run. Only ids, decisions and
-counts reach the browser: never tokens, and never cell values (TeleLogs data). The network behind the tool is still
-the simulator.
+counts reach the browser, plus the specialist's note, which is model text about server facts: never tokens, and never
+cell values (TeleLogs data). The network behind the tool is still the simulator.
 """
 from __future__ import annotations
 
@@ -20,10 +20,14 @@ import uuid
 from aws.audit import UNDECLARED, audit_item, iso_ms, plain
 from aws.evidence import item_detail
 from aws.infra.attacks_live import tamper, verdict
-from aws.infra.deploy import AUDIT_TABLE, DDB_PREFIX
+from aws.infra.deploy import AUDIT_TABLE, DDB_PREFIX, models_command
 from aws.infra.judged_run import LOG_GROUPS, TracedClient
 from aws.infra.pause import FUNCTIONS, status as stack_status
 from aws.infra.smoke import outcome, pick_incidents
+from aws.infra.team import TASK, pick_case
+from aws.tool_lambda.approvals import DynamoApprovals
+from aws.tool_lambda.ledger import DynamoLedger
+from aws.tool_lambda.models import CLASSIFIER, DynamoModels
 from common.catalogue import BLAST_RADIUS
 from license.registry_ddb import DynamoRegistry
 
@@ -35,7 +39,10 @@ KEEP = 50       # traces remembered for polling
 HOP_FIELDS = {"gateway_request": ("mode", "action", "cell_count", "category", "score_ok", "licence_ok", "dropped"),
               "tool_call": ("tool", "role", "mode", "action"),
               "remediation_applied": ("action", "mode", "action_id", "licence_jti", "threshold", "resolved"),
-              "tool_refused": ("action", "mode", "reason")}
+              "tool_refused": ("action", "mode", "reason"),
+              "agent_call": ("to_agent", "from_role", "model", "guardrail_input", "guardrail_output", "next"),
+              "approval_requested": ("approval_id", "action"),
+              "approval_decided": ("approval_id", "decision", "decided_by")}
 
 
 def explain(e: Exception) -> str:
@@ -72,6 +79,10 @@ def gate_decision(reply: dict, recorded: list[dict]) -> dict:
     return {"decision": "UNKNOWN", "basis": "no tool record yet"}
 
 
+def verdict_words(o: dict) -> str:
+    return "the Gateway's rules refused it." if o["decision"] == "DENY" else f"the tool refused it ({item_detail(o)})."
+
+
 def plan(kind: str, small: tuple, big: tuple) -> dict:
     """The arguments for one live call. `setup` is the allowed first part of a split change."""
     if kind == "small":
@@ -97,6 +108,7 @@ class Live:     # the AWS calls themselves are covered by the live check in GUID
         self.root, self.profile, self.s, self._client = root, profile, session, client
         self.lock = threading.Lock()
         self.traces: dict[str, float] = {}
+        self.approval_traces: dict[str, str] = {}
         self._picked = None
 
     def state(self) -> dict | None:
@@ -124,6 +136,7 @@ class Live:     # the AWS calls themselves are covered by the live check in GUID
             cur = DynamoRegistry(s.client("dynamodb"), DDB_PREFIX)
             top = cur.current()
             out["licence"] = {"jti": top[0], "status": cur.status(top[0])} if top else None
+            out["models"] = DynamoModels(s.client("dynamodb"), DDB_PREFIX).status(CLASSIFIER)
             out["ready"] = True
         except Exception as e:      # the panel explains; it never pretends
             self.s = None
@@ -146,6 +159,95 @@ class Live:     # the AWS calls themselves are covered by the live check in GUID
             self._client = TracedClient(st, self.profile)
         return self._client
 
+    def _new_trace(self) -> tuple[str, float]:
+        trace, t0 = f"live-{uuid.uuid4().hex[:12]}", time.time()
+        self.traces[trace] = t0
+        while len(self.traces) > KEEP:
+            self.traces.pop(next(iter(self.traces)))
+        return trace, t0
+
+    def _approvals(self, st: dict):
+        return DynamoApprovals(self.session(st).client("dynamodb"), DDB_PREFIX)
+
+    def _case(self, st: dict) -> tuple[str, str, list[str]]:
+        from model.scorer import ScoreCache
+        try:
+            order = json.load(open(os.path.join(self.root, "state", "data", "splits.json")))["heldout_order"]
+        except (OSError, ValueError):
+            raise LiveRefused("The frozen data is not on this machine.") from None
+        bundle = os.path.join(self.root, "dist", "bundle")
+        return pick_case(bundle, order, ScoreCache(os.path.join(bundle, "data", "scores.jsonl")),
+                         DynamoLedger(self.session(st).client("dynamodb"), DDB_PREFIX))
+
+    def team_ask(self) -> dict:
+        """The lead asks the specialist for a note and queues the change for a person. Nothing changes until one decides."""
+        st = self.state()
+        if not st:
+            raise LiveRefused("No stack deployed from this machine yet.")
+        with self.lock:
+            self._need_running(st)
+            iid, action, cells = self._case(st)
+            gw = self._gateway(st)
+            trace, _ = self._new_trace()
+            tok = gw.c.token("agent_client")
+            o = outcome(gw.call_traced(tok, "ask_agent", {"incident_id": iid, "agent": "specialist", "task": TASK}, trace))
+            if o["decision"] != "ALLOW":
+                raise LiveRefused(f"The specialist was not asked: {verdict_words(o)}")
+            note = o["detail"]["result"]["note"]
+            o = outcome(gw.call_traced(tok, "request_human_approval", {"incident_id": iid, "proposed_action": action,
+                                                                       "cells": cells, "reason": note[:300]}, trace))
+            if o["decision"] != "ALLOW":
+                raise LiveRefused(f"The change was not queued: {verdict_words(o)}")
+            aid = o["detail"]["result"]["approval_id"]
+            self.approval_traces[aid] = trace
+        return {"trace_id": trace, "approval_id": aid, "incident": iid, "action": action, "cells": len(cells), "note": note}
+
+    def team_pending(self) -> list[dict]:
+        st = self.state()
+        if not st:
+            return []
+        return [{"approval_id": p["approval_id"], "incident": p["incident_id"], "action": p["request"].get("action"),
+                 "cells": len(p["request"].get("cells") or []), "note": p["request"].get("reason"),
+                 "created_at": p.get("created_at")} for p in self._approvals(st).pending()]
+
+    def team_decide(self, approval_id: str, decision: str) -> dict:
+        """A person's decision, sent with the engineer's token so Cedar and the tool check it like any other call."""
+        st = self.state()
+        if not st or decision not in ("approved", "denied"):
+            raise LiveRefused("Unknown decision.")
+        with self.lock:
+            self._need_running(st)
+            rec = self._approvals(st).get(approval_id)
+            if not rec:
+                raise LiveRefused("There is no such approval.")
+            gw = self._gateway(st)
+            trace = self.approval_traces.get(approval_id)
+            if trace not in self.traces:
+                trace, _ = self._new_trace()
+            tok = gw.c.token("engineer_client")
+            iid = rec["incident_id"]
+            o = outcome(gw.call_traced(tok, "decide_approval", {"incident_id": iid, "approval_id": approval_id,
+                                                                "decision": decision}, trace))
+            if o["decision"] != "ALLOW":
+                raise LiveRefused(f"The decision was refused: {verdict_words(o)}")
+            out = {"trace_id": trace, "approval_id": approval_id, "incident": iid, "decision": decision, "change": None}
+            if decision == "approved":
+                o = outcome(gw.call_traced(tok, "apply_remediation", {
+                    "incident_id": iid, "action": rec["request"]["action"], "cells": rec["request"]["cells"],
+                    "mode": "approved", "approval_id": approval_id}, trace))
+                done = o["detail"]["result"] if o["decision"] == "ALLOW" else {}
+                out["change"] = {"decision": o["decision"], "action_id": done.get("action_id"), "resolved": done.get("resolved"),
+                                 "detail": verdict_words(o) if o["decision"] != "ALLOW" else None}
+        return out
+
+    def models(self, op: str) -> dict:
+        st = self.state()
+        if not st or op not in ("withdraw", "restore"):
+            raise LiveRefused("Unknown action.")
+        with self.lock:
+            models_command(self.session(st).client("dynamodb"), op, "live console")
+        return self.status()
+
     def call(self, kind: str) -> dict:
         if kind not in KINDS:
             raise LiveRefused("Unknown call.")
@@ -157,11 +259,7 @@ class Live:     # the AWS calls themselves are covered by the live check in GUID
             small, big = self._incidents()
             p = plan(kind, small, big)
             gw = self._gateway(st)
-            trace = f"live-{uuid.uuid4().hex[:12]}"
-            t0 = time.time()
-            self.traces[trace] = t0
-            while len(self.traces) > KEEP:
-                self.traces.pop(next(iter(self.traces)))
+            trace, t0 = self._new_trace()
             tok = gw.c.token("agent_client")
             got_token = time.time()
             if "setup" in p:        # its own trace id, so the attack's trace shows only the attack

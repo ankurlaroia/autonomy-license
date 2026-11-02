@@ -22,9 +22,8 @@ def test_the_change_is_refused_before_the_approval_and_after_it():
 def test_every_identity_is_refused_what_it_may_not_do():
     by = {p["step"]: p for p in plan()}
     for s in ("specialist_cannot_ask", "engineer_cannot_ask", "lead_cannot_approve", "specialist_cannot_approve",
-              "specialist_cannot_change"):
+              "specialist_cannot_change", "guardrail_stops_prompt_attack"):
         assert by[s]["expect"] == "DENY"
-    assert by["guardrail_stops_prompt_attack"]["expect"] == "REFUSED_BY_TOOL"
     assert by["engineer_applies"]["who"] == "engineer_client" and by["engineer_applies"]["expect"] == "ALLOW"
 
 

@@ -12,10 +12,11 @@ the AgentCore interceptor docs; S3 still confirms it live) and adds the caller a
 """
 from __future__ import annotations
 
+from aws.tool_lambda.models import CLASSIFIER, model_ok, team_model
 from license.verifier import verify_licence
 
 AGENT_TRUST_FIELDS = ("licence_valid", "license_valid", "score", "score_ok", "licence_ok", "category",
-                      "cell_count", "threshold", "caller")
+                      "cell_count", "threshold", "caller", "model_ok")
 ATTESTED_TOOLS = ("apply_remediation", "request_human_approval", "decide_approval", "ask_agent")
 
 
@@ -26,6 +27,8 @@ def _untrusted(k: str) -> bool:
 def intercept(tool: str, args: dict, principal: dict, trusted, operator: str = "A") -> dict:
     a = {k: v for k, v in args.items() if not _untrusted(k)}
     notes = [k for k in args if _untrusted(k)]
+    if tool == "ask_agent":
+        a["model_ok"] = model_ok(trusted, team_model(trusted))
     if tool != "apply_remediation":
         return {"input": a, "notes": notes}
     iid = a.get("incident_id")
@@ -40,6 +43,8 @@ def intercept(tool: str, args: dict, principal: dict, trusted, operator: str = "
     a["licence_ok"], a["score_ok"] = False, False
     if a.get("mode") == "autonomous":
         try:
+            if not model_ok(trusted, CLASSIFIER):
+                raise PermissionError("the diagnosing model is withdrawn")
             tok = trusted.registry.current()
             if tok is None:
                 raise PermissionError("no licence")
@@ -90,7 +95,7 @@ def _jwks(url: str):
 
 
 TRACE_FIELDS = ("mode", "action", "cells", "cell_count", "category", "score_ok", "licence_ok", "agent", "decision",
-                "approval_id")
+                "approval_id", "model_ok")
 
 
 def lambda_handler(event, context, role_from_headers=None, writer=None):

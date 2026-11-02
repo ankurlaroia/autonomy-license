@@ -26,7 +26,7 @@ network. Licence status and warnings live in DynamoDB, so a withdrawal reaches e
 | Prepare data (frozen splits, PREREG) | `python data/prepare_telelogs.py --source telelogs --out state/data` |
 | Score (SageMaker GPU, once) | `python -m aws.infra.score_job run --data state/data` |
 | Calibrate, sign, deploy (unit `licence`) | `python -m aws.infra.judged_run --profile fyuz --team-code <code> --units licence` |
-| Live allow, deny, attacks, trace, pause | `python -m aws.infra.judged_run --profile fyuz --team-code <code> --units allow,deny,adversarial,trace,pause` |
+| Live allow, deny, attacks, trace, pause | `python -m aws.infra.judged_run --profile fyuz --team-code <code> --units allow,deny,adversarial,trace,team,lead,pause` |
 | Live test (read-only) | `python tools/show_record.py --run-id <run_id> --item <TL-id>` |
 | Rebuild (no AWS) | `python tools/rebuild.py` |
 | A person's approval (changes state, not part of the read-only test) | `python -m aws.infra.team ask`, then `pending`, then `approve <id>` |

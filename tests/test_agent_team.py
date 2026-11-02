@@ -141,14 +141,23 @@ def test_policy_set_still_validates_strictly():
     assert validate(GW) == []
 
 
+ASK = {"incident_id": "I", "agent": "specialist", "task": "t", "model_ok": True}
+
+
 @pytest.mark.parametrize("role,want", [("netops-agent", "Allow"), ("netops-specialist", "Deny"),
                                        ("noc-engineer", "Deny")])
 def test_cedar_only_the_lead_may_ask_an_agent(role, want):
-    assert decide(role, "ask_agent", {"incident_id": "I", "agent": "specialist", "task": "t"}) == want
+    assert decide(role, "ask_agent", ASK) == want
 
 
 def test_cedar_the_lead_may_ask_only_a_team_member():
-    assert decide("netops-agent", "ask_agent", {"incident_id": "I", "agent": "stranger", "task": "t"}) == "Deny"
+    assert decide("netops-agent", "ask_agent", {**ASK, "agent": "stranger"}) == "Deny"
+    assert decide("netops-agent", "ask_agent", {**ASK, "agent": "planner"}) == "Allow"
+
+
+def test_cedar_a_withdrawn_or_unchecked_model_is_not_called():
+    assert decide("netops-agent", "ask_agent", {**ASK, "model_ok": False}) == "Deny"
+    assert decide("netops-agent", "ask_agent", {k: v for k, v in ASK.items() if k != "model_ok"}) == "Deny"
 
 
 @pytest.mark.parametrize("role,want", [("noc-engineer", "Allow"), ("netops-agent", "Deny"),

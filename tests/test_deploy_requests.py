@@ -37,7 +37,8 @@ def test_gateway_role_can_invoke_only_our_functions_and_evaluate_policy():
     doc = D.gateway_role_policy("1", "us-east-1", ["arn:fn:a", "arn:fn:b"], "arn:engine")
     actions = {a for s in doc["Statement"] for a in ([s["Action"]] if isinstance(s["Action"], str) else s["Action"])}
     assert actions == {"lambda:InvokeFunction", "bedrock-agentcore:GetPolicyEngine",
-                       "bedrock-agentcore:AuthorizeAction", "bedrock-agentcore:PartiallyAuthorizeActions"}
+                       "bedrock-agentcore:AuthorizeAction", "bedrock-agentcore:PartiallyAuthorizeActions",
+                       "bedrock:InvokeGuardrailChecks"}
     inv = next(s for s in doc["Statement"] if s["Action"] == "lambda:InvokeFunction")
     assert inv["Resource"] == ["arn:fn:a", "arn:fn:b"]
 
@@ -63,9 +64,22 @@ def test_clients_are_m2m_with_short_tokens():
 def test_policies_one_per_rule_strictly_validated():
     reqs = D.policy_requests("e", "arn:aws:bedrock-agentcore:us-east-1:1:gateway/g")
     assert [r["name"] for r in reqs][-5:] == ["F2", "F3k1", "F3k2", "F3k3", "F3k4"]
-    assert all(r["validationMode"] == "FAIL_ON_ANY_FINDINGS" for r in reqs)
-    assert all('AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:1:gateway/g"' in r["definition"]["cedar"]["statement"]
+    assert all(r["validationMode"] == "FAIL_ON_ANY_FINDINGS" for r in reqs if r["name"] != "G1")
+    assert all('AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:1:gateway/g"' in next(iter(r["definition"].values()))["statement"]
                for r in reqs)
+
+
+def test_the_gateway_itself_applies_guardrails_to_agent_calls():
+    reqs = {r["name"]: r for r in D.policy_requests("e", "arn:g")}
+    assert "P4" not in reqs                                    # a plain permit next to it would bypass the guardrail
+    p4 = reqs["P4g"]["definition"]["policy"]["statement"]      # the live service refuses this syntax under "cedar"
+    assert "when guardrails" in p4 and "context.input.task" in p4
+    assert '["PROMPT_INJECTION"].confidenceScore.lessThanOrEqual(decimal("0.4"))' in p4 and "maxConfidenceScore" not in p4
+    assert 'getTag("role") == "netops-agent"' in p4 and ".contains(context.input.agent)" in p4    # same conditions as plain P4
+    g1 = reqs["G1"]
+    assert g1["definition"]["policy"]["statement"].startswith("suppressOutput (principal")
+    assert g1["validationMode"] == "IGNORE_ALL_FINDINGS"
+    assert "when guardrails" not in reqs["P1"]["definition"]["cedar"]["statement"]
 
 
 def test_attach_keeps_gateway_config_and_sets_mode():
@@ -95,6 +109,7 @@ def test_lambda_role_reaches_only_the_registry_tables():
     assert sorted(st["Resource"]) == ["arn:aws:dynamodb:us-east-1:1:table/al-approvals",
                                       "arn:aws:dynamodb:us-east-1:1:table/al-changes",
                                       "arn:aws:dynamodb:us-east-1:1:table/al-licences",
+                                      "arn:aws:dynamodb:us-east-1:1:table/al-models",
                                       "arn:aws:dynamodb:us-east-1:1:table/al-warnings"]
     assert "dynamodb:DeleteItem" not in st["Action"] and "dynamodb:*" not in st["Action"]
 

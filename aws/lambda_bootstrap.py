@@ -58,10 +58,12 @@ def trusted_from_env():
         import boto3
         from aws.tool_lambda.approvals import DynamoApprovals
         from aws.tool_lambda.ledger import DynamoLedger
+        from aws.tool_lambda.models import DynamoModels
         from license.registry_ddb import DynamoRegistry
         t.registry = DynamoRegistry(boto3.client("dynamodb"), prefix)
         t.ledger = DynamoLedger(boto3.client("dynamodb"), prefix)    # cells changed per incident, shared
         t.approvals = DynamoApprovals(boto3.client("dynamodb"), prefix)    # request, decision and change, shared
+        t.models = DynamoModels(boto3.client("dynamodb"), prefix)    # a withdrawal reaches every Lambda at once
     if os.environ.get("AL_GUARDRAIL_ID"):     # without it there is no specialist, so ask_agent refuses (fail closed)
         import boto3
         from aws.tool_lambda.team import DEFAULT_MODEL, Specialist

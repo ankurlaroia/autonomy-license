@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { LiveCall, LiveHop, LiveKind, LiveStatus } from "@/lib/api";
+import type { LiveApproval, LiveCall, LiveDecision, LiveHop, LiveKind, LiveStatus } from "@/lib/api";
 import { api } from "@/lib/api";
 import { useSimple } from "@/lib/simple";
 
@@ -21,6 +21,9 @@ const KIND: Record<string, string> = {
   tool_call: "Recorded the call before changing anything",
   remediation_applied: "Change applied to the simulated network",
   tool_refused: "Refused by the tool's own check",
+  agent_call: "The lead asked another agent through the Gateway",
+  approval_requested: "The change was queued for a person",
+  approval_decided: "A person decided",
 };
 
 const clock = (iso?: string | null) => (iso ? iso.slice(11, 23) : "");
@@ -41,7 +44,14 @@ export default function LivePanel({ onClose }: { onClose: () => void }) {
   const [past, setPast] = useState<LiveCall[]>([]);
   const root = useRef<HTMLElement>(null);
 
-  const refresh = useCallback(() => api.liveStatus().then(setStatus).catch((e) => setError((e as Error).message)), []);
+  const [pending, setPending] = useState<LiveApproval[]>([]);
+  const [decided, setDecided] = useState<LiveDecision | null>(null);
+
+  const readPending = useCallback(() => api.liveTeamPending().then(setPending).catch(() => setPending([])), []);
+  const refresh = useCallback(() => {
+    void readPending();
+    return api.liveStatus().then(setStatus).catch((e) => setError((e as Error).message));
+  }, [readPending]);
   useEffect(() => {
     const first = setTimeout(() => void refresh(), 0);
     const t = setInterval(() => void refresh(), 10_000);     // the stack and licence can change from elsewhere
@@ -95,9 +105,23 @@ export default function LivePanel({ onClose }: { onClose: () => void }) {
     }
   }, [last]);
 
+  const askTeam = useCallback(async () => {
+    setBusy("ask");
+    setError(null);
+    setDecided(null);
+    try { await api.liveTeamAsk(); await readPending(); } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
+  }, [readPending]);
+
+  const decide = useCallback(async (id: string, d: "approved" | "denied") => {
+    setBusy(`${d}-${id}`);
+    setError(null);
+    try { setDecided(await api.liveTeamDecide(id, d)); await readPending(); } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
+  }, [readPending]);
+
   const ready = !!status?.ready;
   const running = status?.stack === "running";
   const active = status?.licence?.status === "active";
+  const modelsOut = status?.models === "withdrawn";
 
   return (
     <section ref={root} className="glass reveal mt-8 scroll-mt-4 p-5 sm:p-7" aria-label="Live view of the AWS services">
@@ -144,7 +168,14 @@ export default function LivePanel({ onClose }: { onClose: () => void }) {
             <Spin on={busy === "new"} />{busy === "new" ? "Calibrating and signing" : simple ? "Earn a new permission" : "Issue a new licence (KMS)"}
           </button>
         )}
+        {ready && (
+          <button type="button" className="lq-btn !min-h-[42px] text-sm" data-tone={modelsOut ? "signal" : "ember"} disabled={!!busy}
+            onClick={() => void act("models", () => api.liveModels(modelsOut ? "restore" : "withdraw"))}>
+            <Spin on={busy === "models"} />{modelsOut ? (simple ? "Bring the AI models back" : "Restore the models") : (simple ? "Take the AI models away" : "Withdraw the models")}
+          </button>
+        )}
       </div>
+      {modelsOut && <p className="mt-3 text-sm" style={{ color: "var(--ember)" }}>{simple ? "The AI models are withdrawn: no agent can call them and nothing changes on its own." : "Models withdrawn: calls to the team model are refused and no autonomous change passes."}</p>}
 
       {/* ---- send a real call */}
       <h3 className="mt-7 text-lg font-semibold tracking-tight">{simple ? "Try something" : "Send a real call"}</h3>
@@ -158,6 +189,44 @@ export default function LivePanel({ onClose }: { onClose: () => void }) {
           </button>
         ))}
       </div>
+
+      {/* ---- a person decides */}
+      <h3 className="mt-7 text-lg font-semibold tracking-tight">{simple ? "Ask a person to decide" : "Human approval"}</h3>
+      <p className="muted mt-1 max-w-[68ch] text-sm leading-relaxed">
+        {simple
+          ? "The lead agent asks a second AI for a note and queues the change. Nothing changes until you press Approve."
+          : "The lead asks the specialist for a note and queues the change. Your decision goes through the Gateway with the engineer's token, and an approval works once."}
+      </p>
+      <button type="button" className="lq-btn mt-3 !min-h-[42px] text-sm" disabled={!ready || !running || !!busy} onClick={() => void askTeam()}>
+        <Spin on={busy === "ask"} />{busy === "ask" ? "Asking the specialist" : "Queue a change for approval"}
+      </button>
+      {pending.length > 0 && (
+        <ul className="mt-3 space-y-2" aria-label="Waiting for a decision">
+          {pending.map((p) => (
+            <li key={p.approval_id} className="glass-card px-4 py-3">
+              <p className="text-sm font-semibold">{p.action ?? "Unknown change"}, {p.cells} cells, {p.incident}</p>
+              {p.note && <p className="muted mt-1 max-w-[68ch] text-sm leading-relaxed">{p.note}</p>}
+              <p className="faint text-caption mt-1">{simple ? "Written by an AI, as advice. It decides nothing." : "Written by the specialist model, as advice. It decides nothing."}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" className="lq-btn !min-h-[42px] text-sm" data-tone="signal" disabled={!running || !!busy} onClick={() => void decide(p.approval_id, "approved")}>
+                  <Spin on={busy === `approved-${p.approval_id}`} />Approve and apply
+                </button>
+                <button type="button" className="lq-btn !min-h-[42px] text-sm" data-tone="ember" disabled={!running || !!busy} onClick={() => void decide(p.approval_id, "denied")}>
+                  <Spin on={busy === `denied-${p.approval_id}`} />Deny
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {decided && (
+        <p className="mt-3 text-sm" aria-live="polite" style={{ color: decided.decision === "denied" || decided.change?.decision !== "ALLOW" ? "var(--ember)" : "var(--signal)" }}>
+          {decided.decision === "denied" ? `Denied. Nothing changed on ${decided.incident}.`
+            : decided.change?.decision === "ALLOW" ? `Approved and applied on the simulated network, ${decided.incident}, action ${decided.change.action_id}.`
+            : `Approved, but the change was refused: ${decided.change?.detail ?? "no detail"}`}
+          <span className="faint serial ml-2">trace {decided.trace_id}</span>
+        </p>
+      )}
 
       {/* ---- what happened */}
       {last && <Trace call={last} hops={hops} polling={polling} simple={simple} />}

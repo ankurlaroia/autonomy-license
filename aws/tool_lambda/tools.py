@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from aws.tool_lambda.approvals import APPROVER_ROLES, DECISIONS, Approvals, action_digest, verify_approval
 from aws.tool_lambda.ledger import LedgerError, SqliteLedger
+from aws.tool_lambda.models import CLASSIFIER, model_ok
 from aws.tool_lambda.simulator import Simulator
 from aws.tool_lambda.team import AGENTS, LEAD_ROLE, MAX_TASK, facts
 from common.catalogue import BLAST_RADIUS, CATALOGUE, NEVER_AUTONOMOUS
@@ -74,7 +75,7 @@ class NetOpsTools:
         return {"approval_id": aid, "decision": decision}
 
     def ask_agent(self, principal, args):
-        """The lead asks the specialist for a handover note. Advice only: this tool changes nothing."""
+        """The lead asks a team agent for a note or its next step. Advice only: this tool changes nothing."""
         iid, agent, task = args.get("incident_id"), args.get("agent"), args.get("task")
         role = principal.get("role")
         try:
@@ -89,16 +90,20 @@ class NetOpsTools:
             specialist = getattr(self.t, "specialist", None)
             if specialist is None:
                 raise ToolError("no guardrail configured, so no model call")
-            note = specialist.note(task, facts(self.t, iid, len(self.t.cell_ids(iid))))
-        except Exception as e:   # fail closed: no note
+            if not model_ok(self.t, specialist.model):
+                raise ToolError("the team's model is withdrawn")
+            known = facts(self.t, iid, len(self.t.cell_ids(iid)))
+            answer = specialist.plan(task, known) if agent == "planner" else specialist.note(task, known)
+        except Exception as e:   # fail closed: no answer
             self.t.store.audit("tool_refused", {"incident_id": iid or "?", "agent": agent, "reason": str(e)[:200],
                                                 "role": role}, self.operator)
             raise ToolError(f"refused by tool (Path B): {e}") from None
         self.t.store.audit("agent_call", {"incident_id": iid, "from_role": role, "to_agent": agent,
                                           "model": specialist.model, "guardrail_input": "NONE",
                                           "guardrail_output": "NONE", "task_chars": len(task),
-                                          "note_chars": len(note)}, self.operator)
-        return {"agent": agent, "note": note, "advisory": True}
+                                          "note_chars": len(answer),
+                                          "next": answer if agent == "planner" else None}, self.operator)
+        return {"agent": agent, ("next" if agent == "planner" else "note"): answer, "advisory": True}
 
     # ------------------------------------------------------------------
     def _path_b_checks(self, principal, args) -> dict:
@@ -116,6 +121,8 @@ class NetOpsTools:
                 raise ToolError("autonomous mode is for the agent role only")
             if action in NEVER_AUTONOMOUS:
                 raise ToolError("hard rule: never-autonomous action")
+            if not model_ok(self.t, CLASSIFIER):
+                raise ToolError("the diagnosing model is withdrawn")
             cat = self.t.category(iid)
             tok = self.t.registry.current()
             if tok is None:
