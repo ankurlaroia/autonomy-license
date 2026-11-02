@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, JetBrains_Mono, Public_Sans } from "next/font/google";
 import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Autonomy License",
   description: "An AI network agent acts alone only while calibration evidence says it may.",
 };
+
+// viewport-fit: the fixed dock clears a phone's home bar through env(safe-area-inset-bottom).
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

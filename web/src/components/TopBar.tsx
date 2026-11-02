@@ -12,8 +12,8 @@ export default function TopBar({ active, source, onStage, onLive, liveOpen }: {
   active: (typeof TABS)[number]["key"]; source?: string; onStage?: () => void; onLive?: () => void; liveOpen?: boolean;
 }) {
   return (
-    <nav className="glass flex items-center justify-between gap-2 py-2 pl-3 pr-2 sm:gap-3 sm:pl-3.5" style={{ borderRadius: 999 }}>
-      <Link href="/" aria-label="Autonomy License, console" className="flex items-center gap-3 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--signal)]">
+    <nav className="glass flex items-center justify-between gap-1 py-1.5 pl-2.5 pr-1.5 sm:gap-3 sm:py-2 sm:pl-3.5 sm:pr-2" style={{ borderRadius: 999 }}>
+      <Link href="/" aria-label="Autonomy License, console" className={`flex items-center gap-3 rounded-full ${onLive ? "max-[399px]:hidden" : "max-[349px]:hidden"} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--signal)]`}>
         <svg aria-hidden width="32" height="32" viewBox="0 0 32 32">
           <path d="M16 2.5l11.7 6.75v13.5L16 29.5 4.3 22.75V9.25z" style={{ fill: "rgb(var(--signal-rgb) / .12)" }} stroke="var(--signal)" strokeWidth="1.6" />
           <path d="M10.5 16.2l3.6 3.6 7.4-7.6" fill="none" stroke="var(--signal)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -27,19 +27,19 @@ export default function TopBar({ active, source, onStage, onLive, liveOpen }: {
       <div role="tablist" aria-label="Pages" className="flex gap-1 rounded-full bg-sink p-1">
         {TABS.map((t) => (
           <Link key={t.key} href={t.href} role="tab" aria-selected={active === t.key}
-            className="lq-btn !min-h-[38px] !px-3 text-sm sm:!px-4" data-active={active === t.key}
+            className="lq-btn !min-h-[44px] !px-2.5 text-sm max-[359px]:!px-1.5 sm:!min-h-[38px] sm:!px-4" data-active={active === t.key}
             data-tone={active === t.key ? "signal" : undefined}>
             {t.label}
           </Link>
         ))}
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {onLive && (
-          <button type="button" onClick={onLive} aria-pressed={liveOpen} className="lq-btn !min-h-[38px] !px-3 text-sm" data-tone="signal"
+          <button type="button" onClick={onLive} aria-pressed={liveOpen} aria-label="Live" className="lq-btn !min-h-[44px] !w-[44px] !px-0 text-sm sm:!min-h-[38px] sm:!w-auto sm:!px-3" data-tone="signal"
             title="Send real calls to the AWS services and see what each one recorded">
             <span aria-hidden className="h-2 w-2 rounded-full bg-signal" />
-            Live
+            <span className="hidden sm:inline">Live</span>
           </button>
         )}
         {onStage && (

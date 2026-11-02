@@ -192,6 +192,7 @@ body {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+@media (pointer: coarse) { .lq-btn { min-height: 44px !important; } }      /* a finger, not a cursor */
 .lq-btn:hover:not(:disabled) { background: rgb(var(--tint) / 0.16); border-color: rgb(var(--tint) / 0.5); }
 .lq-btn:active:not(:disabled) { transform: scale(0.97); transition-duration: 90ms; }
 .lq-btn:disabled { opacity: 0.38; cursor: not-allowed; }
@@ -222,7 +223,8 @@ body {
 .dock .lq-btn { min-height: 52px; padding: 0 1.1rem 0 0.55rem; }
 @media (max-width: 1023px) { .dock .lq-btn { padding: 0 0.5rem; } }
 @media (max-width: 639px) {
-  .dock .lq-btn { min-height: 42px; padding: 0 3px; gap: 0; }
+  .glass.dock { background: var(--abyss); }   /* solid: page text scrolling behind it must not show through */
+  .dock .lq-btn { min-height: 44px; padding: 0 0.75rem 0 4px; gap: 0.4rem; font-size: var(--text-sm); }
   .dock-num { width: 32px; height: 32px; font-size: 0.85rem; }
 }
 .dock-num {
@@ -375,6 +377,9 @@ html { scroll-behavior: smooth; }
   letter-spacing: 0.06em;
   mix-blend-mode: multiply;
   opacity: 0.9;
+}
+@media (max-width: 639px) {      /* over the header's white space, so it covers none of the licence's facts */
+  .void { top: 148px; left: 72%; font-size: 1.2rem; padding: 0.1rem 0.6rem; border-width: 3px; }
 }
 .void.stamp-in { animation: void-in 520ms cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes void-in {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import AuditTimeline from "@/components/AuditTimeline";
 import Backdrop from "@/components/Backdrop";
@@ -143,6 +143,14 @@ export default function Console() {
   }, [stage]);
 
   const lastName = state?.last?.name ?? null;
+  // On a phone the dock scrolls sideways: keep the next step in view, so the next tap needs no hunting.
+  const dock = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const d = dock.current;
+    const next = nextMoment(lastName, active);
+    const b = next && d?.querySelector<HTMLElement>(`[data-moment="${next}"]`);
+    if (d && b && d.scrollWidth > d.clientWidth) d.scrollTo({ left: b.offsetLeft - (d.clientWidth - b.offsetWidth) / 2, behavior: "smooth" });
+  }, [lastName, active]);
   // Number keys 1–7 run the numbered moments; S enters or leaves stage mode; R twice resets the demo (twice, so
   // a stray key can't wipe it mid-talk). On stage, → / PageDown (what a presenter clicker sends) / Space run the
   // next moment in the demo order, and Esc leaves.
@@ -331,13 +339,13 @@ export default function Console() {
       </div>
 
       {/* ------------------------------------------------ the dock */}
-      <div className="fixed inset-x-0 bottom-4 z-20 flex justify-center px-3">
-        <div className="glass dock flex max-w-full gap-1 overflow-x-auto sm:gap-1.5" role="toolbar" aria-label="Demo moments">
+      <div className="fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-20 flex justify-center px-3">
+        <div ref={dock} className="glass dock relative flex max-w-full gap-1 overflow-x-auto sm:gap-1.5" role="toolbar" aria-label="Demo moments">
           {MOMENTS.map((m) => {
             const blocked = m.needsLicence ? !active : m.id === "recertify" ? !licensed : false;
             const disabled = !!busy || blocked || conn !== "ok";
             return (
-              <button key={m.id} className="lq-btn shrink-0" data-tone={m.tone} disabled={disabled}
+              <button key={m.id} data-moment={m.id} className="lq-btn shrink-0" data-tone={m.tone} disabled={disabled}
                 aria-pressed={state?.last?.name === m.id} aria-busy={busy === m.id}
                 title={conn !== "ok" ? "Waiting for the engine" : blocked ? (licensed ? "Licence revoked: Re-certify first" : "Earn a licence first") : `${m.hint}${m.n ? ` (key ${m.n})` : ""}`}
                 aria-label={m.label} onClick={() => run(m.id)}>
@@ -348,7 +356,7 @@ export default function Console() {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M20 12a8 8 0 11-2.3-5.6M20 4v4h-4" /></svg>
                   )}
                 </span>
-                <span className="hidden lg:inline">{m.label}</span>
+                <span className="sm:hidden lg:inline">{m.label}</span>
               </button>
             );
           })}

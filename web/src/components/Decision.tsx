@@ -68,7 +68,7 @@ export function PathRail({ steps }: { steps: Step[] | null }) {
   const stop = stopAt(st);
   const t = stop * 0.15;   // in step with the nodes lighting up, 150 ms apart
   return (
-    <ol className="relative flex items-start justify-between gap-1" aria-label="Enforcement path">
+    <ol className="relative grid grid-cols-5 items-start" aria-label="Enforcement path">
       {/* the call itself, travelling from the agent to the node that decided */}
       {!reduce && steps && stop > 0 && (
         <motion.span aria-hidden className="pointer-events-none absolute z-[1] h-3 w-3 rounded-full"
@@ -79,7 +79,7 @@ export function PathRail({ steps }: { steps: Step[] | null }) {
           transition={{ left: { duration: t, ease: "linear" }, opacity: { duration: t + 0.35, times: [0, 0.08, 0.8, 1] } }} />
       )}
       {NODES.map((n, i) => (
-        <li key={n.k} className="relative flex flex-1 flex-col items-center text-center">
+        <li key={n.k} className="relative flex min-w-0 flex-col items-center text-center">
           {i > 0 && (
             <span
               aria-hidden
@@ -99,7 +99,7 @@ export function PathRail({ steps }: { steps: Step[] | null }) {
               <path d={st[i] === "deny" ? "M6 6l12 12M18 6L6 18" : n.icon} />
             </svg>
           </span>
-          <span className={`mt-2 text-sm ${st[i] === "skip" || st[i] === "idle" ? "faint" : "muted"}`}>{simple ? n.plain : n.label}</span>
+          <span className={`mt-2 text-xs sm:text-sm ${st[i] === "skip" || st[i] === "idle" ? "faint" : "muted"}`}>{simple ? n.plain : n.label}</span>
         </li>
       ))}
     </ol>
@@ -288,7 +288,7 @@ function PolicyQuote({ id, fired, text, server }: {
             </code>
           </pre>
           <details className="disclosure stage-hide mt-1.5 text-xs">
-            <summary className="faint">Full statement, as deployed</summary>
+            <summary className="faint py-2.5 sm:py-0">Full statement, as deployed</summary>
             <pre className="mt-1.5 overflow-x-auto rounded-xl border border-fg/10 px-3.5 py-3 font-[family-name:var(--font-serial)] text-xs leading-relaxed">{text}</pre>
           </details>
         </>

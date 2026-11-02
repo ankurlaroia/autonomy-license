@@ -7,7 +7,7 @@ export default function ThemeToggle() {
   const t = useTheme();
   const next = t === "dark" ? "light" : "dark";
   return (
-    <button type="button" onClick={() => setTheme(next)} className="lq-btn !min-h-[38px] !w-[38px] !px-0"
+    <button type="button" onClick={() => setTheme(next)} className="lq-btn !min-h-[44px] !w-[44px] !px-0 sm:!min-h-[38px] sm:!w-[38px]"
       aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
       {t === "dark" ? (
         <svg aria-hidden width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
