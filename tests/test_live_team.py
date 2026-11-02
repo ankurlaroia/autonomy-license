@@ -67,7 +67,8 @@ def test_ask_uses_the_leads_token_and_changes_nothing(make):
     assert [(c[0], c[1]) for c in link._client.calls] == [("agent_client", "ask_agent"),
                                                           ("agent_client", "request_human_approval")]
     assert out["approval_id"] == "APR-1" and out["note"] == "Check the cells." and out["cells"] == 2
-    assert L.TRACE.match(out["trace_id"]) and "c1" not in json.dumps(out)
+    assert L.TRACE.match(out["trace_id"])
+    assert "c1" not in json.dumps({k: v for k, v in out.items() if k != "trace_id"})     # the trace id is random hex
 
 
 def test_a_withdrawn_model_stops_the_ask_and_queues_nothing(make):

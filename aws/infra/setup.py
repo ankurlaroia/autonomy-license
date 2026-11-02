@@ -1,7 +1,6 @@
 """Create the AWS resources whose APIs are stable and well known: the KMS issuer key and the
-DynamoDB tables. AgentCore Gateway / Policy / interceptor wiring is done in the Sunday smoke test
-(aws/infra/SMOKE_TEST.md) against the live console/docs, because the control-plane request shapes
-must be confirmed there, not guessed here.
+DynamoDB tables. AgentCore Gateway / Policy / interceptor wiring is done by aws/infra/deploy.py,
+because the control-plane request shapes were confirmed against the live service, not guessed here.
 
   python -m aws.infra.setup --region us-west-2 --prefix al        # dry run
   python -m aws.infra.setup --region us-west-2 --prefix al --apply

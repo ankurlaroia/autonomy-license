@@ -1,25 +1,105 @@
-# data, keys and local state: never committed (TeleLogs is gated; see DATA.md)
-state/
-dist/
+# Secrets and credentials: never committed
+.env
+.env.*
+*.env
+!.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+*.ppk
+*.jks
+*.keystore
+*.secret
+*.token
+id_rsa*
+id_ed25519*
+credentials
+credentials.*
+*credentials*.json
+secrets.*
+.aws/
+.netrc
+.npmrc
+.pypirc
+.htpasswd
+*.tfstate
+*.tfstate.*
+
+# Data and local state: TeleLogs is gated, so it stays out of the repository (see DATA.md)
+state/
+dist/
 *.db
 *.db-wal
 *.db-shm
-.env
-.env.*
+*.sqlite
+*.sqlite3
+*.parquet
+*.arrow
+*.csv
+*.tsv
 *.jsonl
+
+# Declared-run evidence is part of the hand-in, whatever its file type
+!evidence/**/*.csv
 !evidence/**/*.jsonl
 
-# python
+# Model weights and archives
+*.safetensors
+*.gguf
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Organiser material: the event terms restrict sharing it
+organiser-files/
+*.pptx
+*.pdf
+
+# Documents: only the ones the hand-in requires are published
+*.md
+*.mdx
+!/README.md
+!/DATA.md
+!/GAPS.md
+
+# Screenshots and local run output
+demo-run/
+ui-snapshots/
+logs/
+*.log
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
-# web console (Next.js)
+# Web console (Next.js)
 node_modules/
 .next/
 out/
 *.tsbuildinfo
 .vercel/
+
+# Editors, operating systems and assistants
+.vscode/
+.idea/
+.claude/
+.mcp.json
+graphify-out/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp

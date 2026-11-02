@@ -103,7 +103,7 @@ def plan(kind: str, small: tuple, big: tuple) -> dict:
     raise ValueError(kind)
 
 
-class Live:     # the AWS calls themselves are covered by the live check in GUIDE.md
+class Live:     # the AWS calls themselves are checked by hand against the deployed stack, not by these tests
     def __init__(self, root: str, profile: str | None = None, session=None, client=None):
         self.root, self.profile, self.s, self._client = root, profile, session, client
         self.lock = threading.Lock()

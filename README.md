@@ -16,8 +16,7 @@ id.
 **Architecture.** Agent → Cognito token → AgentCore Gateway → interceptor Lambda (drops the agent's trust fields,
 writes the server's cell count, category, score and licence checks; records the request) → Cedar policy (permit
 or forbid, default deny) → tool Lambda (re-checks everything, records the call before acting) → simulated
-network. Licence status and warnings live in DynamoDB, so a withdrawal reaches every Lambda at once. Diagrams:
-[GUIDE.md](GUIDE.md).
+network. Licence status and warnings live in DynamoDB, so a withdrawal reaches every Lambda at once.
 
 **One command per stage** (team account, `AWS_PROFILE=fyuz`, us-east-2):
 
@@ -34,7 +33,7 @@ network. Licence status and warnings live in DynamoDB, so a withdrawal reaches e
 Each run writes `evidence/declared/<run_id>.json` to the team bucket **before** it starts (unit, target, frozen
 test-set hash, model id, grader, the exact items), then its per-item outputs, records and a pass/fail record file
 under `evidence/runs/<run_id>/`, mirrored in this repository. `judging.json` lists the run ids and commands;
-[DATA.md](DATA.md) the data and model outputs; [GAPS.md](GAPS.md) what does not work; [DEMO_SCRIPT.md](DEMO_SCRIPT.md) the pitch and video script.
+[DATA.md](DATA.md) the data and model outputs; [GAPS.md](GAPS.md) what does not work.
 
 **Before Nov 1.** The engine, calibration, licence, Cedar policies and the first AWS stack were built on
 30–31 Oct 2026, before the event, and first run in a personal AWS account. The evidence chain (declared runs, the
@@ -57,7 +56,7 @@ control back to humans.
 > The licence is signed by KMS (`alias/al-licence-issuer`) and deployed; live Gateway in ENFORCE: 2-cell ALLOW,
 > 5-cell DENY by Cedar F1, and 6/6 live attacks blocked (`dist/smoke_evidence.json`, `dist/attacks_live.json`).
 > The synthetic stand-in (`state/data.synthetic`) still drives the offline demos and tests; numbers from it are
-> synthetic. Check whether the organisers allow code written before the event.
+> synthetic.
 
 ## Run it
 
@@ -92,14 +91,12 @@ pytest                              # release checklist + AWS request checks
 
 Not built (by decision): Strands planner, IoT, offline edge authority, a second model, real network control.
 
-## Steps that need you (cannot be done from code)
+## Pausing the stack
 
-1. ~~S1–S4 live smoke test~~ done 31 Oct. ~~S5 real data + KMS~~ done 31 Oct.
-2. The stack stays deployed but is **paused** (`python -m aws.infra.pause pause`: every Lambda throttled to 0, so
-   nothing runs or bills; the KMS key still costs about $1/month). Before a live demo: `pause resume`, then rebuild
-   the expired licence: `stub_bundle --data state/data --kms-key alias/al-licence-issuer` → `package` → `deploy apply`.
-   Step-by-step guide and architecture diagrams: [GUIDE.md](GUIDE.md) and the console's Help page.
-3. `aws logout` when done (the CLI is signed in as root).
+The stack stays deployed but **paused** (`python -m aws.infra.pause pause`: every Lambda throttled to 0, so nothing
+runs or bills; the KMS key still costs about $1/month). Before a live demo: `pause resume`, then rebuild the expired
+licence: `stub_bundle --data state/data --kms-key alias/al-licence-issuer` → `package` → `deploy apply`. The console's
+Help page has the step-by-step guide and architecture diagrams.
 
 ## Honest limits (say them on stage)
 
