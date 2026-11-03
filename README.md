@@ -13,6 +13,11 @@ server computes (the agent's own claims are dropped). Hard rules hold whatever t
 the licence hands control back to people. Every decision leaves a record in DynamoDB and CloudWatch under one run
 id.
 
+**Where to look.** `judging.json` has the run ids and results; `evidence/declared/` the target set before each run;
+`evidence/runs/` what each run produced; `GAPS.md` what did not work; `DATA.md` the data sources. In the submission bucket,
+`logs/` holds the raw CloudWatch lines for each run, and `recording/` and `presentation/` the demo and slides. The run
+evidence first written during the runs is in the team data bucket named in `judging.json`.
+
 **The LLMs.** `att/OTel-LLM-8.3B-Classification`, a telecom LLM from Hugging Face, diagnoses each fault; its scores are
 what the licence calibrates, and they were computed once and cached. Amazon Nova Lite on Bedrock writes the specialist's
 note for the engineer and names the lead's next step from a fixed list. Neither model can approve a change: the licence,
