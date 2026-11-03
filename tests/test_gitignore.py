@@ -33,3 +33,9 @@ def test_stays_out(path):
 ])
 def test_stays_in(path):
     assert not ignored(path)
+
+
+@pytest.mark.parametrize("path", ["evidence/runs/run/items.jsonl", "evidence/declared/run.json", "judging.json"])
+def test_git_keeps_evidence_bytes_exact(path):      # tools/rebuild.py hashes these files
+    out = subprocess.run(["git", "check-attr", "text", "--", path], cwd=ROOT, capture_output=True, text=True).stdout
+    assert out.strip().endswith("text: unset")

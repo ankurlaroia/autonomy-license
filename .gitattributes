@@ -1,0 +1,3 @@
+# Evidence is checked byte for byte by tools/rebuild.py, so Git must never change its line endings
+evidence/** -text
+judging.json -text
