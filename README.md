@@ -49,7 +49,13 @@ error rate of the diagnoses it would act on. The permission is a signed, expirin
 policies enforce it on every tool call; hard rules hold whatever the licence says; revocation sends
 control back to humans.
 
-> **Status (31 Oct 2026): P0 done live on real data.** 818 single-cause TeleLogs test incidents scored by
+> **Reported results: declared runs in the team account (`team11`, us-east-2, 2–3 Nov 2026).** All eight units
+> pass; run ids and values are in `judging.json`. Upper bound on wrong autonomous diagnoses 1.19% against a 5% target;
+> 10 of 10 licensed changes applied; 10 of 10 oversized changes refused with no change; 7 of 7 attacks blocked; 5 of 5
+> traces complete; 16 of 16 team steps as declared; 3 of 3 model-led cases governed; 11 of 11 calls refused after the
+> licence and models were withdrawn. The network is simulated. Limits are in [GAPS.md](GAPS.md).
+>
+> **First results (31 Oct 2026, personal account, superseded by the runs above).** 818 single-cause TeleLogs test incidents scored by
 > att/OTel-LLM-8.3B-Classification on a SageMaker GPU; PREREG written from the 60 pilot scores before calibration
 > (`sha256:a6a487c7…`, the id inside the licence); calibration licensed λ̂ = 0.70 with n = 446 accepted, k = 2 wrong, U = 1.19% ≤ α = 5%
 > (δ = 10%); held-out 308: autonomy 99.0% (305), 3 wrong, selective error 0.98% (90% CI 0.27–2.52%).
@@ -86,7 +92,7 @@ pytest                              # release checklist + AWS request checks
 | GPU scoring as a SageMaker training job (ml.g5.2xlarge, on-demand; spot quota is 0) | `aws/infra/score_job.py`, `aws/scoring/` | **Run 31 Oct**: pilot 616 s, full 1014 s billed (about $0.70); a first try on ml.g5.xlarge ran out of RAM |
 | Self-revoking licence: anytime-valid e-process on autonomous outcomes | `license/monitor.py`, moment 7 | Tested; false revocation <= delta at any stopping time (Ville); drift demo is synthetic |
 | P1 federation (masking) and signed warnings, local and DynamoDB | `federation/`, `deploy warn` | Tested |
-| P2 attack scorecard, local and live | `scripts/attacks.py`, `aws/infra/attacks_live.py` | 8/8 local; **6/6 live** on 31 Oct (personal account); 7/7 in a declared rehearsal on 2 Nov (personal account, not a reported result), including the split-change attack |
+| P2 attack scorecard, local and live | `scripts/attacks.py`, `aws/infra/attacks_live.py` | 8/8 local; **7/7 live in the declared `adversarial` run** (team account), including the split-change attack |
 | Console | `web/` (Next.js), `console/app.py` | Works locally |
 
 Not built (by decision): Strands planner, IoT, offline edge authority, a second model, real network control.

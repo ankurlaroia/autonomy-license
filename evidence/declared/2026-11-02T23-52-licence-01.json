@@ -1,0 +1,1389 @@
+{
+ "run_id": "2026-11-02T23-52-licence-01",
+ "unit": "licence",
+ "track": "track-3",
+ "team_code": "team11",
+ "declared_at": "2026-11-02T23:52:23Z",
+ "target": {
+  "metric": "clopper_pearson_upper_bound_of_wrong_autonomous_diagnoses",
+  "value": 0.05,
+  "op": "<="
+ },
+ "test_set_sha256": "sha256:8bb67991857034e24077615fcd53caa29d2d2c937f587ad94b623a6cd83fd0cd",
+ "model_id": "att/OTel-LLM-8.3B-Classification",
+ "model_fingerprint": "sha256:fdbe90344cc65f578cc850038d33f45b8340c2ff01b1baaa4ad137d57191650f",
+ "grader": "rule-based: the TeleLogs ground-truth cause label compared with the predicted cause code (calibration/selective_risk.py); no model grades",
+ "items": [
+  {
+   "item": "TL-a2d53901d869"
+  },
+  {
+   "item": "TL-8d3acb220b24"
+  },
+  {
+   "item": "TL-87e3f0da8b86"
+  },
+  {
+   "item": "TL-5add638ef5d2"
+  },
+  {
+   "item": "TL-1933faf0f75b"
+  },
+  {
+   "item": "TL-4409fbfdbe54"
+  },
+  {
+   "item": "TL-8e140b418e1e"
+  },
+  {
+   "item": "TL-d3c9da7f956e"
+  },
+  {
+   "item": "TL-49335bacc6e4"
+  },
+  {
+   "item": "TL-bd5a216176ee"
+  },
+  {
+   "item": "TL-f199aff283d4"
+  },
+  {
+   "item": "TL-477a1bcc9b87"
+  },
+  {
+   "item": "TL-695cfa59bc8f"
+  },
+  {
+   "item": "TL-7c49e4b34273"
+  },
+  {
+   "item": "TL-6a38337ecfd5"
+  },
+  {
+   "item": "TL-0b66544ea0d5"
+  },
+  {
+   "item": "TL-5ba826f0fa19"
+  },
+  {
+   "item": "TL-4aee8eadbb27"
+  },
+  {
+   "item": "TL-89fcf0fb9cc8"
+  },
+  {
+   "item": "TL-2fcab7252549"
+  },
+  {
+   "item": "TL-9c3a72fa2637"
+  },
+  {
+   "item": "TL-e603b0cedfec"
+  },
+  {
+   "item": "TL-ea1c56f6b9a1"
+  },
+  {
+   "item": "TL-3cf01a67a78c"
+  },
+  {
+   "item": "TL-856732097533"
+  },
+  {
+   "item": "TL-83b31a26017f"
+  },
+  {
+   "item": "TL-03b879a749a6"
+  },
+  {
+   "item": "TL-7bc610e79b3e"
+  },
+  {
+   "item": "TL-f11573655c35"
+  },
+  {
+   "item": "TL-3cdd96620d72"
+  },
+  {
+   "item": "TL-920afaa6d419"
+  },
+  {
+   "item": "TL-ffcd280cde5d"
+  },
+  {
+   "item": "TL-e654145344eb"
+  },
+  {
+   "item": "TL-c02b874953e6"
+  },
+  {
+   "item": "TL-1c83ecc7e7fd"
+  },
+  {
+   "item": "TL-4c0d3f25fef3"
+  },
+  {
+   "item": "TL-d9ed38884572"
+  },
+  {
+   "item": "TL-ce362bcc9f6d"
+  },
+  {
+   "item": "TL-5642c450366d"
+  },
+  {
+   "item": "TL-0299c1566b59"
+  },
+  {
+   "item": "TL-c8330e10a112"
+  },
+  {
+   "item": "TL-ad27d1e3f5fb"
+  },
+  {
+   "item": "TL-972180de4886"
+  },
+  {
+   "item": "TL-66113590ab97"
+  },
+  {
+   "item": "TL-6960553645df"
+  },
+  {
+   "item": "TL-8f76961f7887"
+  },
+  {
+   "item": "TL-893b41834a72"
+  },
+  {
+   "item": "TL-6b2d98937cde"
+  },
+  {
+   "item": "TL-08e9e97af7cf"
+  },
+  {
+   "item": "TL-142f94527932"
+  },
+  {
+   "item": "TL-db7372d07417"
+  },
+  {
+   "item": "TL-d08088477e6f"
+  },
+  {
+   "item": "TL-e73b30bf8136"
+  },
+  {
+   "item": "TL-eeb4afa957ae"
+  },
+  {
+   "item": "TL-c053d0294603"
+  },
+  {
+   "item": "TL-e69c9adae902"
+  },
+  {
+   "item": "TL-fcb261b63121"
+  },
+  {
+   "item": "TL-cebdd7a517bc"
+  },
+  {
+   "item": "TL-752d4dda24fc"
+  },
+  {
+   "item": "TL-40a002c1d5c7"
+  },
+  {
+   "item": "TL-5875a931d37c"
+  },
+  {
+   "item": "TL-409500fe60f4"
+  },
+  {
+   "item": "TL-d45c08cb1867"
+  },
+  {
+   "item": "TL-aafafde019b0"
+  },
+  {
+   "item": "TL-6384ab88e09a"
+  },
+  {
+   "item": "TL-464543489ee5"
+  },
+  {
+   "item": "TL-879540af4603"
+  },
+  {
+   "item": "TL-7e07e1399915"
+  },
+  {
+   "item": "TL-d3da675d0cdf"
+  },
+  {
+   "item": "TL-cf019c56a517"
+  },
+  {
+   "item": "TL-0b947582b122"
+  },
+  {
+   "item": "TL-8f3552a525ff"
+  },
+  {
+   "item": "TL-d4f5f60f1e28"
+  },
+  {
+   "item": "TL-839633726fe4"
+  },
+  {
+   "item": "TL-ec30a2f25213"
+  },
+  {
+   "item": "TL-f5e7c5664f27"
+  },
+  {
+   "item": "TL-ff0291cda318"
+  },
+  {
+   "item": "TL-4038c0b05593"
+  },
+  {
+   "item": "TL-287b9b8c9d5a"
+  },
+  {
+   "item": "TL-81ce60d822b6"
+  },
+  {
+   "item": "TL-e8829349e549"
+  },
+  {
+   "item": "TL-23dad8d82115"
+  },
+  {
+   "item": "TL-9eb01df48489"
+  },
+  {
+   "item": "TL-ceaa6908cf1d"
+  },
+  {
+   "item": "TL-0ee0ee3c2172"
+  },
+  {
+   "item": "TL-0e291c817626"
+  },
+  {
+   "item": "TL-5b7d5eb07b24"
+  },
+  {
+   "item": "TL-a132a7cd05e2"
+  },
+  {
+   "item": "TL-6205df58c586"
+  },
+  {
+   "item": "TL-a5885d4329cf"
+  },
+  {
+   "item": "TL-cfe65a387646"
+  },
+  {
+   "item": "TL-bb6d0b0066e0"
+  },
+  {
+   "item": "TL-fbfedefc04e9"
+  },
+  {
+   "item": "TL-21dd241f83c6"
+  },
+  {
+   "item": "TL-1e11bc64d2c7"
+  },
+  {
+   "item": "TL-9e108177aff2"
+  },
+  {
+   "item": "TL-3cbfc4b82b37"
+  },
+  {
+   "item": "TL-0345c83e4f26"
+  },
+  {
+   "item": "TL-05af069a0bcf"
+  },
+  {
+   "item": "TL-630ab9fd998d"
+  },
+  {
+   "item": "TL-78b04b26a763"
+  },
+  {
+   "item": "TL-965fe695acdd"
+  },
+  {
+   "item": "TL-98675a4d8215"
+  },
+  {
+   "item": "TL-7ffe199bbdde"
+  },
+  {
+   "item": "TL-b8d1849519ee"
+  },
+  {
+   "item": "TL-312d69e14472"
+  },
+  {
+   "item": "TL-255254499017"
+  },
+  {
+   "item": "TL-439b85bbb680"
+  },
+  {
+   "item": "TL-aa16ea78e500"
+  },
+  {
+   "item": "TL-9159a20023e7"
+  },
+  {
+   "item": "TL-8aa645e455ac"
+  },
+  {
+   "item": "TL-7f63c44e2ce4"
+  },
+  {
+   "item": "TL-6469bba815e3"
+  },
+  {
+   "item": "TL-2b3f4394a326"
+  },
+  {
+   "item": "TL-16ce97a64233"
+  },
+  {
+   "item": "TL-a6f52e08d199"
+  },
+  {
+   "item": "TL-a3c67fe72428"
+  },
+  {
+   "item": "TL-bcee79be6fca"
+  },
+  {
+   "item": "TL-ce8474ea4d3f"
+  },
+  {
+   "item": "TL-1e83ca16a3b5"
+  },
+  {
+   "item": "TL-e515f1274ceb"
+  },
+  {
+   "item": "TL-5c82baeb089a"
+  },
+  {
+   "item": "TL-a234117bd222"
+  },
+  {
+   "item": "TL-1ce2e98d3330"
+  },
+  {
+   "item": "TL-d197a62a02f0"
+  },
+  {
+   "item": "TL-9b202548ed32"
+  },
+  {
+   "item": "TL-61271c33625c"
+  },
+  {
+   "item": "TL-b2f3972ef7bc"
+  },
+  {
+   "item": "TL-dc739f628bb2"
+  },
+  {
+   "item": "TL-8eba89ae0e3a"
+  },
+  {
+   "item": "TL-41086e3840c6"
+  },
+  {
+   "item": "TL-2a19176d79b1"
+  },
+  {
+   "item": "TL-c111ac60ec3c"
+  },
+  {
+   "item": "TL-dda441a01a63"
+  },
+  {
+   "item": "TL-206d475ef6f7"
+  },
+  {
+   "item": "TL-489e4af44a4e"
+  },
+  {
+   "item": "TL-be8dd318a350"
+  },
+  {
+   "item": "TL-279cfef49eba"
+  },
+  {
+   "item": "TL-db6a7a6bd347"
+  },
+  {
+   "item": "TL-317178464319"
+  },
+  {
+   "item": "TL-0ce3ca1213fa"
+  },
+  {
+   "item": "TL-032c5a5e05ce"
+  },
+  {
+   "item": "TL-54c8eef66506"
+  },
+  {
+   "item": "TL-ef758dd7f722"
+  },
+  {
+   "item": "TL-b18a86b94d29"
+  },
+  {
+   "item": "TL-7e2894573ac4"
+  },
+  {
+   "item": "TL-7737846ef775"
+  },
+  {
+   "item": "TL-31b48ee4fec8"
+  },
+  {
+   "item": "TL-5ce2c1283027"
+  },
+  {
+   "item": "TL-29e14e747739"
+  },
+  {
+   "item": "TL-b747940cc8ba"
+  },
+  {
+   "item": "TL-79e899270846"
+  },
+  {
+   "item": "TL-fb7489b6c3e2"
+  },
+  {
+   "item": "TL-efeeb3de831c"
+  },
+  {
+   "item": "TL-0ff0cb2251db"
+  },
+  {
+   "item": "TL-97ad057294ee"
+  },
+  {
+   "item": "TL-1a5774a45162"
+  },
+  {
+   "item": "TL-c524f84d48a0"
+  },
+  {
+   "item": "TL-8bf6c03e8531"
+  },
+  {
+   "item": "TL-49db32b68bd1"
+  },
+  {
+   "item": "TL-cf712ffd9775"
+  },
+  {
+   "item": "TL-29dc9221bf18"
+  },
+  {
+   "item": "TL-a1cc9625f00a"
+  },
+  {
+   "item": "TL-321a3348fdb7"
+  },
+  {
+   "item": "TL-09253b160e15"
+  },
+  {
+   "item": "TL-47af0ff78157"
+  },
+  {
+   "item": "TL-5b4cc3489f53"
+  },
+  {
+   "item": "TL-8000ab29d99c"
+  },
+  {
+   "item": "TL-6e62aa87ebe4"
+  },
+  {
+   "item": "TL-1aa39504d487"
+  },
+  {
+   "item": "TL-059d7011a7a1"
+  },
+  {
+   "item": "TL-13aa29ad8ee0"
+  },
+  {
+   "item": "TL-7a45e0589620"
+  },
+  {
+   "item": "TL-319df635d645"
+  },
+  {
+   "item": "TL-0c77a82b1870"
+  },
+  {
+   "item": "TL-d22153221231"
+  },
+  {
+   "item": "TL-de84ba1dc91e"
+  },
+  {
+   "item": "TL-6e2ac92e2618"
+  },
+  {
+   "item": "TL-a3b5cd98eb56"
+  },
+  {
+   "item": "TL-67938e8115a5"
+  },
+  {
+   "item": "TL-20672a15819a"
+  },
+  {
+   "item": "TL-882a67d73084"
+  },
+  {
+   "item": "TL-9bd9744c7b07"
+  },
+  {
+   "item": "TL-d72d04548b99"
+  },
+  {
+   "item": "TL-1b4638b7714c"
+  },
+  {
+   "item": "TL-f1f0a0de58db"
+  },
+  {
+   "item": "TL-6279b7326f00"
+  },
+  {
+   "item": "TL-403e4243aa53"
+  },
+  {
+   "item": "TL-2a752661636c"
+  },
+  {
+   "item": "TL-f08acd0b4ecf"
+  },
+  {
+   "item": "TL-0902eca7cc54"
+  },
+  {
+   "item": "TL-d2a914b39152"
+  },
+  {
+   "item": "TL-0c5e40b585a7"
+  },
+  {
+   "item": "TL-9dcdacca41b9"
+  },
+  {
+   "item": "TL-679dcf8cb03a"
+  },
+  {
+   "item": "TL-b99287674362"
+  },
+  {
+   "item": "TL-beed34e9417a"
+  },
+  {
+   "item": "TL-dc4aa7e2bcea"
+  },
+  {
+   "item": "TL-a5b5e05a7743"
+  },
+  {
+   "item": "TL-257e6a15cd9a"
+  },
+  {
+   "item": "TL-08aba4a826c9"
+  },
+  {
+   "item": "TL-647a6d0ba84d"
+  },
+  {
+   "item": "TL-a6f4f298fd68"
+  },
+  {
+   "item": "TL-32c5c5bc6321"
+  },
+  {
+   "item": "TL-9e852291a5c7"
+  },
+  {
+   "item": "TL-6f7e91eed9ab"
+  },
+  {
+   "item": "TL-a6d6782ce1c0"
+  },
+  {
+   "item": "TL-f2a2991f5527"
+  },
+  {
+   "item": "TL-8e996b24ddc7"
+  },
+  {
+   "item": "TL-2c83c11960ac"
+  },
+  {
+   "item": "TL-f781e3ea00f6"
+  },
+  {
+   "item": "TL-5a5d8b81127a"
+  },
+  {
+   "item": "TL-46cb44255ce1"
+  },
+  {
+   "item": "TL-04d8b63aaa50"
+  },
+  {
+   "item": "TL-5a77bfdc0682"
+  },
+  {
+   "item": "TL-0357b2678a93"
+  },
+  {
+   "item": "TL-5ef4627921be"
+  },
+  {
+   "item": "TL-4da6bef646e8"
+  },
+  {
+   "item": "TL-dd9cd7320c50"
+  },
+  {
+   "item": "TL-eaec33a2cfaa"
+  },
+  {
+   "item": "TL-46448876428e"
+  },
+  {
+   "item": "TL-a413c669c703"
+  },
+  {
+   "item": "TL-56f1d272c023"
+  },
+  {
+   "item": "TL-36e7fe7eaa3e"
+  },
+  {
+   "item": "TL-ab90e4a14691"
+  },
+  {
+   "item": "TL-ce1c27cd804c"
+  },
+  {
+   "item": "TL-f0361af5cd72"
+  },
+  {
+   "item": "TL-3032cf423e4e"
+  },
+  {
+   "item": "TL-25df9dff3576"
+  },
+  {
+   "item": "TL-6cd0f152b666"
+  },
+  {
+   "item": "TL-a53c91f9f41c"
+  },
+  {
+   "item": "TL-04dcdab23f0d"
+  },
+  {
+   "item": "TL-a2922dc79b61"
+  },
+  {
+   "item": "TL-42e688e98ecb"
+  },
+  {
+   "item": "TL-1bd37fb2bb40"
+  },
+  {
+   "item": "TL-978486ed9404"
+  },
+  {
+   "item": "TL-fc4f0374877c"
+  },
+  {
+   "item": "TL-b9da77380ad7"
+  },
+  {
+   "item": "TL-9bed7fbf6798"
+  },
+  {
+   "item": "TL-4e7ef75d1f1c"
+  },
+  {
+   "item": "TL-6b5b4220ff1a"
+  },
+  {
+   "item": "TL-21a300fb17c0"
+  },
+  {
+   "item": "TL-edb2950b6ba7"
+  },
+  {
+   "item": "TL-1dfae158368a"
+  },
+  {
+   "item": "TL-6b632e7cb48a"
+  },
+  {
+   "item": "TL-8c59b7c1d5ad"
+  },
+  {
+   "item": "TL-0436f75daa4e"
+  },
+  {
+   "item": "TL-8f33a049b249"
+  },
+  {
+   "item": "TL-56276154420f"
+  },
+  {
+   "item": "TL-c2cacfb15e7d"
+  },
+  {
+   "item": "TL-af4e18b5c047"
+  },
+  {
+   "item": "TL-7f4c5e746d15"
+  },
+  {
+   "item": "TL-482b10210d81"
+  },
+  {
+   "item": "TL-579d68bf0862"
+  },
+  {
+   "item": "TL-588c61d996d6"
+  },
+  {
+   "item": "TL-3d36a048d98f"
+  },
+  {
+   "item": "TL-5aba6d254bb9"
+  },
+  {
+   "item": "TL-5001c57cd94d"
+  },
+  {
+   "item": "TL-8c60f251f833"
+  },
+  {
+   "item": "TL-bd78f72e8509"
+  },
+  {
+   "item": "TL-d596653e7263"
+  },
+  {
+   "item": "TL-4782adf854bd"
+  },
+  {
+   "item": "TL-333e83b47ab7"
+  },
+  {
+   "item": "TL-4e99d57ffa9a"
+  },
+  {
+   "item": "TL-7726ab19a15f"
+  },
+  {
+   "item": "TL-829b3a2adb89"
+  },
+  {
+   "item": "TL-c17a30bcb8c2"
+  },
+  {
+   "item": "TL-e9ecb7feeffe"
+  },
+  {
+   "item": "TL-fda695df9ab5"
+  },
+  {
+   "item": "TL-75fcb8eb2ef1"
+  },
+  {
+   "item": "TL-12e32d6bc458"
+  },
+  {
+   "item": "TL-eae06d583dba"
+  },
+  {
+   "item": "TL-c87fc8e5726b"
+  },
+  {
+   "item": "TL-d7d7264cff18"
+  },
+  {
+   "item": "TL-a0c5b8ad6b53"
+  },
+  {
+   "item": "TL-68c4bfb77da9"
+  },
+  {
+   "item": "TL-9de895ae51f4"
+  },
+  {
+   "item": "TL-2418208c87c2"
+  },
+  {
+   "item": "TL-4116259fb417"
+  },
+  {
+   "item": "TL-a251b83e8e07"
+  },
+  {
+   "item": "TL-df9c93740e39"
+  },
+  {
+   "item": "TL-606c1c8006cc"
+  },
+  {
+   "item": "TL-a0a0bc03d87f"
+  },
+  {
+   "item": "TL-7d4f0eef2d6a"
+  },
+  {
+   "item": "TL-42e74faecd1d"
+  },
+  {
+   "item": "TL-114283d10369"
+  },
+  {
+   "item": "TL-3cac35551c44"
+  },
+  {
+   "item": "TL-8dfcc991b866"
+  },
+  {
+   "item": "TL-68b915e7b671"
+  },
+  {
+   "item": "TL-1cb26aae7ddf"
+  },
+  {
+   "item": "TL-8b746b5f34d2"
+  },
+  {
+   "item": "TL-a41e3ebf133a"
+  },
+  {
+   "item": "TL-5d4285b0e08e"
+  },
+  {
+   "item": "TL-c47705bb3439"
+  },
+  {
+   "item": "TL-b0ba79bba536"
+  },
+  {
+   "item": "TL-58bc058dc275"
+  },
+  {
+   "item": "TL-50de5c77f04b"
+  },
+  {
+   "item": "TL-171a7918f3ca"
+  },
+  {
+   "item": "TL-7bd8853c42b7"
+  },
+  {
+   "item": "TL-207eb1a6f1b6"
+  },
+  {
+   "item": "TL-f071e48a36fa"
+  },
+  {
+   "item": "TL-2d8cb89f9b6e"
+  },
+  {
+   "item": "TL-1c34f7477400"
+  },
+  {
+   "item": "TL-798d744111c6"
+  },
+  {
+   "item": "TL-fb4988f825be"
+  },
+  {
+   "item": "TL-a7c919690d5b"
+  },
+  {
+   "item": "TL-9a687995af91"
+  },
+  {
+   "item": "TL-1ce72c522f95"
+  },
+  {
+   "item": "TL-480ff474adbf"
+  },
+  {
+   "item": "TL-a1624087bb48"
+  },
+  {
+   "item": "TL-d6e8856eb20a"
+  },
+  {
+   "item": "TL-b3ceda1ce009"
+  },
+  {
+   "item": "TL-56db0daf3eb7"
+  },
+  {
+   "item": "TL-6854d8dca9c2"
+  },
+  {
+   "item": "TL-731c3a0e69c4"
+  },
+  {
+   "item": "TL-0f30f1feb320"
+  },
+  {
+   "item": "TL-d5f0ff28ffd8"
+  },
+  {
+   "item": "TL-fe9d57938a1c"
+  },
+  {
+   "item": "TL-dd9e96536430"
+  },
+  {
+   "item": "TL-58f785f9446c"
+  },
+  {
+   "item": "TL-2b2e39626784"
+  },
+  {
+   "item": "TL-b758fa1c5445"
+  },
+  {
+   "item": "TL-00773a54fb16"
+  },
+  {
+   "item": "TL-4e3229f0a036"
+  },
+  {
+   "item": "TL-d85632254d88"
+  },
+  {
+   "item": "TL-732bed7f84d2"
+  },
+  {
+   "item": "TL-81bb6898e106"
+  },
+  {
+   "item": "TL-8dcfdaed5961"
+  },
+  {
+   "item": "TL-b2cd2b6c7d88"
+  },
+  {
+   "item": "TL-d60d5ece61e5"
+  },
+  {
+   "item": "TL-1a403e4a429f"
+  },
+  {
+   "item": "TL-7a9b2d730c99"
+  },
+  {
+   "item": "TL-205afe30bc9d"
+  },
+  {
+   "item": "TL-6163713d6c85"
+  },
+  {
+   "item": "TL-979cbafc9067"
+  },
+  {
+   "item": "TL-92d5152a35ad"
+  },
+  {
+   "item": "TL-58a969656dfb"
+  },
+  {
+   "item": "TL-c41319550b7e"
+  },
+  {
+   "item": "TL-6ce50e1ed90f"
+  },
+  {
+   "item": "TL-71144db35bdd"
+  },
+  {
+   "item": "TL-89bee97dc55d"
+  },
+  {
+   "item": "TL-3c2d5c6ca7fb"
+  },
+  {
+   "item": "TL-54d9baa12be1"
+  },
+  {
+   "item": "TL-db880944137d"
+  },
+  {
+   "item": "TL-1985e772b6fb"
+  },
+  {
+   "item": "TL-5428adf02842"
+  },
+  {
+   "item": "TL-936eb421ce89"
+  },
+  {
+   "item": "TL-b81924dcc3f3"
+  },
+  {
+   "item": "TL-88452cfe651c"
+  },
+  {
+   "item": "TL-0de460cba00b"
+  },
+  {
+   "item": "TL-820c48d37c32"
+  },
+  {
+   "item": "TL-dd07b1c39e99"
+  },
+  {
+   "item": "TL-cd72e4b22ed3"
+  },
+  {
+   "item": "TL-d96c553a4ae0"
+  },
+  {
+   "item": "TL-7c919cf48f4e"
+  },
+  {
+   "item": "TL-dbc03d850b71"
+  },
+  {
+   "item": "TL-b07c00b54647"
+  },
+  {
+   "item": "TL-fdd8bfdccae3"
+  },
+  {
+   "item": "TL-af747c8553d0"
+  },
+  {
+   "item": "TL-1518fa7ae1ff"
+  },
+  {
+   "item": "TL-d53238c934cd"
+  },
+  {
+   "item": "TL-18e35da00fd1"
+  },
+  {
+   "item": "TL-c09637a49fda"
+  },
+  {
+   "item": "TL-aeb29e00c31e"
+  },
+  {
+   "item": "TL-6c25a3f21e29"
+  },
+  {
+   "item": "TL-3334356b93c1"
+  },
+  {
+   "item": "TL-ea79cabe3f9d"
+  },
+  {
+   "item": "TL-767ec64c09ce"
+  },
+  {
+   "item": "TL-a4b283375ca0"
+  },
+  {
+   "item": "TL-628d9a23111d"
+  },
+  {
+   "item": "TL-fcb34c246e6a"
+  },
+  {
+   "item": "TL-103a0f6d21d7"
+  },
+  {
+   "item": "TL-c29e56a976c3"
+  },
+  {
+   "item": "TL-a58093029bf8"
+  },
+  {
+   "item": "TL-9134cf433456"
+  },
+  {
+   "item": "TL-eb6bb69bfd10"
+  },
+  {
+   "item": "TL-542e323a68bf"
+  },
+  {
+   "item": "TL-5c0ef7bfde4d"
+  },
+  {
+   "item": "TL-60776ee7567b"
+  },
+  {
+   "item": "TL-2f4c161d0fd0"
+  },
+  {
+   "item": "TL-1488cd967519"
+  },
+  {
+   "item": "TL-3fcc38af7d47"
+  },
+  {
+   "item": "TL-a81d21098dc6"
+  },
+  {
+   "item": "TL-2b92c37c5d64"
+  },
+  {
+   "item": "TL-5d885ec8a4c6"
+  },
+  {
+   "item": "TL-6af6a8c54c4f"
+  },
+  {
+   "item": "TL-0db4f3c21e91"
+  },
+  {
+   "item": "TL-fdcb35d671cd"
+  },
+  {
+   "item": "TL-a8bb20ab55d2"
+  },
+  {
+   "item": "TL-d6df912d4075"
+  },
+  {
+   "item": "TL-9cba1c6a7d2a"
+  },
+  {
+   "item": "TL-55724323440c"
+  },
+  {
+   "item": "TL-4495101fa635"
+  },
+  {
+   "item": "TL-25fdc49bf3c3"
+  },
+  {
+   "item": "TL-ee04013fc586"
+  },
+  {
+   "item": "TL-34086dbad7f9"
+  },
+  {
+   "item": "TL-7a0de40c681e"
+  },
+  {
+   "item": "TL-64ab93b15bf9"
+  },
+  {
+   "item": "TL-67ea2909c4e0"
+  },
+  {
+   "item": "TL-51bda078f40d"
+  },
+  {
+   "item": "TL-3c71d0dec84e"
+  },
+  {
+   "item": "TL-7f9ca7787062"
+  },
+  {
+   "item": "TL-4d98d09261d1"
+  },
+  {
+   "item": "TL-7e31adfbb346"
+  },
+  {
+   "item": "TL-82a6d7b68848"
+  },
+  {
+   "item": "TL-442297a3ff6b"
+  },
+  {
+   "item": "TL-44ee879486fb"
+  },
+  {
+   "item": "TL-7157e6f3e9b1"
+  },
+  {
+   "item": "TL-ab30ad4c8ac2"
+  },
+  {
+   "item": "TL-d783d7d1c0e2"
+  },
+  {
+   "item": "TL-055bd1511265"
+  },
+  {
+   "item": "TL-0c2b723af90f"
+  },
+  {
+   "item": "TL-17e6bfee90a2"
+  },
+  {
+   "item": "TL-1b4a4582a79c"
+  },
+  {
+   "item": "TL-1e35f68caf47"
+  },
+  {
+   "item": "TL-24ec48e3167f"
+  },
+  {
+   "item": "TL-323c66ad42bb"
+  },
+  {
+   "item": "TL-3f639a1a0e7e"
+  },
+  {
+   "item": "TL-49981c6c8c3e"
+  },
+  {
+   "item": "TL-68e0538954db"
+  },
+  {
+   "item": "TL-6c67fcd32c61"
+  },
+  {
+   "item": "TL-6f93a082baaf"
+  },
+  {
+   "item": "TL-71a11ce29b5e"
+  },
+  {
+   "item": "TL-794d1bca0ae4"
+  },
+  {
+   "item": "TL-79b07ff2e338"
+  },
+  {
+   "item": "TL-7bed0ddfec55"
+  },
+  {
+   "item": "TL-7e9ebe491e5a"
+  },
+  {
+   "item": "TL-87ab56395fc3"
+  },
+  {
+   "item": "TL-87bafcde1068"
+  },
+  {
+   "item": "TL-8da64941875d"
+  },
+  {
+   "item": "TL-90714bb5608e"
+  },
+  {
+   "item": "TL-940c3d92260e"
+  },
+  {
+   "item": "TL-a5c96fe27b12"
+  },
+  {
+   "item": "TL-ab925108474a"
+  },
+  {
+   "item": "TL-b33d98d25894"
+  },
+  {
+   "item": "TL-b82c59574dab"
+  },
+  {
+   "item": "TL-befc898df024"
+  },
+  {
+   "item": "TL-c5ba1c0680c1"
+  },
+  {
+   "item": "TL-c7a09dcf4bfe"
+  },
+  {
+   "item": "TL-d07f5a218106"
+  },
+  {
+   "item": "TL-df4e63078b4f"
+  },
+  {
+   "item": "TL-f061035e3ecd"
+  },
+  {
+   "item": "TL-f07e7bb15705"
+  },
+  {
+   "item": "TL-f1c8f14acd8b"
+  },
+  {
+   "item": "TL-f235419d5eb0"
+  },
+  {
+   "item": "TL-f2fb60b4e793"
+  },
+  {
+   "item": "TL-f7fc8e9cec99"
+  },
+  {
+   "item": "TL-facd522de345"
+  },
+  {
+   "item": "TL-fd76c35cc024"
+  },
+  {
+   "item": "TL-fea16cb30b83"
+  }
+ ],
+ "grid": [
+  0.9,
+  0.88,
+  0.85,
+  0.8,
+  0.75,
+  0.7
+ ],
+ "alpha": 0.05,
+ "delta": 0.1,
+ "check_set_sha256": "sha256:668db0d77f79b75e26e18554f9ba3547987de704ac7d659b902fd63feebf687f",
+ "prereg_sha256": "sha256:d98de3214b30bd827c96914e519e9d9fc2cf111cc4ab33bd3a4604ad49d9b280",
+ "split_hashes": {
+  "pilot": "sha256:4a1071b946aa6aa957b10b8050dc4df7543265a5d0de2d740621358aaa9d9967",
+  "calibration": "sha256:8bb67991857034e24077615fcd53caa29d2d2c937f587ad94b623a6cd83fd0cd",
+  "heldout": "sha256:668db0d77f79b75e26e18554f9ba3547987de704ac7d659b902fd63feebf687f"
+ },
+ "account": "864292613184",
+ "region": "us-east-2",
+ "kms_key": "alias/al-licence-issuer",
+ "claims": "The bound covers wrong autonomous diagnoses for the filtered single-cause TeleLogs population, not action safety (the hard rules cover that). The network is simulated; 'resolved' comes from the ground-truth label."
+}

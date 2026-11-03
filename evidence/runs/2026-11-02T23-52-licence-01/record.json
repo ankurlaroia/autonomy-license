@@ -1,0 +1,66 @@
+{
+ "run_id": "2026-11-02T23-52-licence-01",
+ "unit": "licence",
+ "declaration_last_modified": 1793663544.0,
+ "items_last_modified": 1793664098.0,
+ "items_sha256": "sha256:e9f9a7e72b8d8883d54cce527ca9c9e48e868099d28ec73af65b1f476b67e3b2",
+ "records_sha256": "sha256:eb5d9a5d826268fcb8f0b0ecb98e6d1276d7e5f9536b7af2abcd642390bccbbd",
+ "result": {
+  "run_id": "2026-11-02T23-52-licence-01",
+  "unit": "licence",
+  "value": 0.011889077049197427,
+  "pass": true,
+  "checks": [
+   {
+    "check": "target declared before the run",
+    "ok": true,
+    "detail": "declaration 1793663544, first record 1793663544"
+   },
+   {
+    "check": "items are the declared items",
+    "ok": true,
+    "detail": "450 run, 450 declared"
+   },
+   {
+    "check": "one run id end to end",
+    "ok": true,
+    "detail": "1 records; calls with no Gateway record: []"
+   },
+   {
+    "check": "times agree with AWS",
+    "ok": true,
+    "detail": "no CloudWatch lines given"
+   },
+   {
+    "check": "grader is not a contestant",
+    "ok": true,
+    "detail": "rule-based: the TeleLogs ground-truth cause label compared with the predicted cause code ("
+   },
+   {
+    "check": "target clopper_pearson_upper_bound_of_wrong_autonomous_diagnoses <= 0.05",
+    "ok": true,
+    "detail": "measured 0.01189"
+   }
+  ],
+  "items": [
+   {
+    "item": "calibration",
+    "licensed": true,
+    "threshold": 0.7,
+    "n": 446,
+    "k": 2,
+    "upper_bound": 0.011889077049197427,
+    "ok": true
+   }
+  ]
+ },
+ "licence": {
+  "out": "C:\\Users\\ankur\\Desktop\\hackathone\\autonomy-license\\dist\\bundle",
+  "licence_jti": "47924051-ffaf-4f58-a17c-231e619c327f",
+  "threshold": 0.7,
+  "fingerprint": "sha256:fdbe90344cc65f578cc850038d33f45b8340c2ff01b1baaa4ad137d57191650f",
+  "data_source": "telelogs",
+  "signer": "kms",
+  "upper_bound": 0.011889077049197427
+ }
+}

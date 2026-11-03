@@ -5,8 +5,9 @@
     python tools/show_record.py --list                       # the run ids in judging.json and their units
 
 Read calls only (they keep working after the account turns read-only): S3 GetObject / HeadObject,
-DynamoDB Query, CloudWatch Logs Insights StartQuery / GetQueryResults, STS GetCallerIdentity. It never calls a
-model, an agent, a Lambda function or Athena, and it writes nothing.
+DynamoDB Query, CloudWatch Logs Insights StartQuery / GetQueryResults, CloudWatch Logs FilterLogEvents (only when
+Logs Insights leaves out lines), STS GetCallerIdentity. It never calls a model, an agent, a Lambda function or Athena,
+and it writes nothing.
 
 What the chair can open to compare, for the same run id and item:
   S3        s3://<bucket>/evidence/declared/<run_id>.json and evidence/runs/<run_id>/items.jsonl
@@ -26,7 +27,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aws import evidence as E  # noqa: E402
-from aws.audit import MARK, plain  # noqa: E402
+from aws.audit import MARK, iso_ms, plain  # noqa: E402
 
 
 def window_keys(start: str | None, end: str | None) -> tuple[str, str]:
@@ -54,6 +55,36 @@ def parse_log_rows(rows: list[list[dict]]) -> list[dict]:
         out.append({"rec_id": line.get("rec_id"), "timestamp": (ts + "Z") if ts and not ts.endswith("Z") else ts,
                     "line": line})
     return out
+
+
+def read_log_lines(logs, groups: list[str], run_id: str, t_lo: int, t_hi: int) -> list[dict]:
+    """The raw log events for a run, in the same shape as parse_log_rows. event timestamp is what Insights shows."""
+    out = []
+    for group in groups:
+        kw = {"logGroupName": group, "startTime": t_lo * 1000, "endTime": t_hi * 1000, "filterPattern": f'"{run_id}"'}
+        while True:
+            page = logs.filter_log_events(**kw)
+            for e in page.get("events", []):
+                try:
+                    line = json.loads(e["message"][e["message"].index("{"):])
+                except ValueError:
+                    continue
+                if MARK in e["message"]:
+                    out.append({"rec_id": line.get("rec_id"), "timestamp": iso_ms(e["timestamp"] / 1000), "line": line})
+            if "nextToken" not in page:
+                break
+            kw["nextToken"] = page["nextToken"]
+    return out
+
+
+def complete_lines(logs, groups: list[str], run_id: str, t_lo: int, t_hi: int, records: list[dict],
+                   lines: list[dict]) -> list[dict]:
+    """Logs Insights can leave out lines that the log group holds, so read the raw events when any record has no line.
+    A record whose line is in neither stays unmatched, and the time check fails."""
+    have = {x["rec_id"] for x in lines}
+    if all(r["rec_id"] in have for r in records if r["source"] in ("interceptor", "tool")):
+        return lines
+    return lines + [x for x in read_log_lines(logs, groups, run_id, t_lo, t_hi) if x["rec_id"] not in have]
 
 
 def show(decl: dict, item: str | None, items: list[dict], records: list[dict], logs: list[dict] | None) -> None:
@@ -123,9 +154,10 @@ def main():   # pragma: no cover - needs AWS
         if res["status"] in ("Complete", "Failed", "Cancelled", "Timeout"):
             break
         time.sleep(1)
-    lines = parse_log_rows(res.get("results", []))
+    found = parse_log_rows(res.get("results", []))
+    lines = complete_lines(logs, ev["log_groups"], a.run_id, t_lo, t_hi, records, found)
     print(f"dynamodb {ev['dynamodb_table']}: {len(records)} records; cloudwatch: {len(lines)} lines "
-          f"(Logs Insights {res['status']})")
+          f"(Logs Insights {res['status']}: {len(found)}; read directly: {len(lines) - len(found)})")
     shown = [r for r in records if lo <= r["sk"] <= hi]
     if a.start or a.end:
         print(f"window {lo} .. {hi[:-1]}: {len(shown)} of {len(records)} records")

@@ -1,0 +1,118 @@
+{
+ "run_id": "2026-11-03T00-01-allow-01",
+ "unit": "allow",
+ "declaration_last_modified": 1793664107.0,
+ "items_last_modified": 1793664132.0,
+ "items_sha256": "sha256:61272898552500755aa0a6c77839ab9ac3e593f928a5b9960e0f5c34d827e955",
+ "records_sha256": "sha256:001f809a3625dd623091abe1089570492bdc9f26eaaeca779f415618e60db44f",
+ "result": {
+  "run_id": "2026-11-03T00-01-allow-01",
+  "unit": "allow",
+  "value": 1.0,
+  "pass": true,
+  "checks": [
+   {
+    "check": "target declared before the run",
+    "ok": true,
+    "detail": "declaration 1793664107, first record 1793664110"
+   },
+   {
+    "check": "items are the declared items",
+    "ok": true,
+    "detail": "10 run, 10 declared"
+   },
+   {
+    "check": "one run id end to end",
+    "ok": true,
+    "detail": "40 records; calls with no Gateway record: []"
+   },
+   {
+    "check": "times agree with AWS",
+    "ok": true,
+    "detail": "no CloudWatch lines given"
+   },
+   {
+    "check": "grader is not a contestant",
+    "ok": true,
+    "detail": "rule-based: the Gateway's Cedar decision and the tool Lambda's own records, compared item "
+   },
+   {
+    "check": "target fraction_allowed_and_applied >= 1.0",
+    "ok": true,
+    "detail": "measured 1"
+   }
+  ],
+  "items": [
+   {
+    "item": "TL-bc9c026237c1",
+    "trace_id": "2026-11-03T00-01-allow-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-f8c7154a9f0d",
+    "trace_id": "2026-11-03T00-01-allow-01/002",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-0a7655eb29ba",
+    "trace_id": "2026-11-03T00-01-allow-01/003",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-89a9cb1c14ed",
+    "trace_id": "2026-11-03T00-01-allow-01/004",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7be23ae909ac",
+    "trace_id": "2026-11-03T00-01-allow-01/005",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-d06d659c9f2d",
+    "trace_id": "2026-11-03T00-01-allow-01/006",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-62a143ebfdf1",
+    "trace_id": "2026-11-03T00-01-allow-01/007",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-2b045817dee6",
+    "trace_id": "2026-11-03T00-01-allow-01/008",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-ea648d1fc81c",
+    "trace_id": "2026-11-03T00-01-allow-01/009",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-03058f3e294e",
+    "trace_id": "2026-11-03T00-01-allow-01/010",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   }
+  ]
+ }
+}

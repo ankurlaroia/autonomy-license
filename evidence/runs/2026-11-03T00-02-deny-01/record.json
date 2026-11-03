@@ -1,0 +1,118 @@
+{
+ "run_id": "2026-11-03T00-02-deny-01",
+ "unit": "deny",
+ "declaration_last_modified": 1793664132.0,
+ "items_last_modified": 1793664150.0,
+ "items_sha256": "sha256:49b93c1d17471d143b2be0e954c47f620fb49972305ac68b112a19f4f8dfbfa5",
+ "records_sha256": "sha256:7d73e5827515f5e6ede9ac31cc15f966b9d533165945453db764e1941847e103",
+ "result": {
+  "run_id": "2026-11-03T00-02-deny-01",
+  "unit": "deny",
+  "value": 1.0,
+  "pass": true,
+  "checks": [
+   {
+    "check": "target declared before the run",
+    "ok": true,
+    "detail": "declaration 1793664132, first record 1793664135"
+   },
+   {
+    "check": "items are the declared items",
+    "ok": true,
+    "detail": "10 run, 10 declared"
+   },
+   {
+    "check": "one run id end to end",
+    "ok": true,
+    "detail": "20 records; calls with no Gateway record: []"
+   },
+   {
+    "check": "times agree with AWS",
+    "ok": true,
+    "detail": "no CloudWatch lines given"
+   },
+   {
+    "check": "grader is not a contestant",
+    "ok": true,
+    "detail": "rule-based: the Gateway's Cedar decision and the tool Lambda's own records, compared item "
+   },
+   {
+    "check": "target fraction_denied_with_no_change >= 1.0",
+    "ok": true,
+    "detail": "measured 1"
+   }
+  ],
+  "items": [
+   {
+    "item": "TL-e8b0f757fe2c",
+    "trace_id": "2026-11-03T00-02-deny-01/001",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-53e10b4e9ce4",
+    "trace_id": "2026-11-03T00-02-deny-01/002",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-5a097af4cd56",
+    "trace_id": "2026-11-03T00-02-deny-01/003",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-88ef126a2738",
+    "trace_id": "2026-11-03T00-02-deny-01/004",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-dcc7a15be2ef",
+    "trace_id": "2026-11-03T00-02-deny-01/005",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-ffa96bf5bd37",
+    "trace_id": "2026-11-03T00-02-deny-01/006",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-a9e402a021f5",
+    "trace_id": "2026-11-03T00-02-deny-01/007",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-0a876650e36f",
+    "trace_id": "2026-11-03T00-02-deny-01/008",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-94e4ac099f93",
+    "trace_id": "2026-11-03T00-02-deny-01/009",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-cf3d99a39480",
+    "trace_id": "2026-11-03T00-02-deny-01/010",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   }
+  ]
+ }
+}

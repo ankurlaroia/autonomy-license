@@ -1,0 +1,83 @@
+{
+ "run_id": "2026-11-03T00-02-trace-01",
+ "unit": "trace",
+ "declaration_last_modified": 1793664173.0,
+ "items_last_modified": 1793664193.0,
+ "items_sha256": "sha256:378b81123e700899e8f8cb50c70936b1aba18ef8ccbfcb8656ff53f074ddb152",
+ "records_sha256": "sha256:2d6ed41075729ec7a031624c8c35ccd6b636c3bd23263f3c22e2bc393e539c21",
+ "result": {
+  "run_id": "2026-11-03T00-02-trace-01",
+  "unit": "trace",
+  "value": 1.0,
+  "pass": true,
+  "checks": [
+   {
+    "check": "target declared before the run",
+    "ok": true,
+    "detail": "declaration 1793664173, first record 1793664176"
+   },
+   {
+    "check": "items are the declared items",
+    "ok": true,
+    "detail": "5 run, 5 declared"
+   },
+   {
+    "check": "one run id end to end",
+    "ok": true,
+    "detail": "20 records; calls with no Gateway record: []"
+   },
+   {
+    "check": "times agree with AWS",
+    "ok": true,
+    "detail": "no CloudWatch lines given"
+   },
+   {
+    "check": "grader is not a contestant",
+    "ok": true,
+    "detail": "rule-based: the Gateway's Cedar decision and the tool Lambda's own records, compared item "
+   },
+   {
+    "check": "target fraction_of_traces_complete_and_in_time_order >= 1.0",
+    "ok": true,
+    "detail": "measured 1"
+   }
+  ],
+  "items": [
+   {
+    "item": "TL-3d45fc041ae9",
+    "trace_id": "2026-11-03T00-02-trace-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-02978bfa216c",
+    "trace_id": "2026-11-03T00-02-trace-01/002",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-095e4b025aad",
+    "trace_id": "2026-11-03T00-02-trace-01/003",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-114d3c6977d9",
+    "trace_id": "2026-11-03T00-02-trace-01/004",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-2c0ce52eb495",
+    "trace_id": "2026-11-03T00-02-trace-01/005",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   }
+  ]
+ }
+}

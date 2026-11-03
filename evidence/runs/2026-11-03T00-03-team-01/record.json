@@ -1,0 +1,160 @@
+{
+ "run_id": "2026-11-03T00-03-team-01",
+ "unit": "team",
+ "declaration_last_modified": 1793664194.0,
+ "items_last_modified": 1793664225.0,
+ "items_sha256": "sha256:c734cc97623b98cda6694205bd0be3490ed0981c746e0335ea25fe7bd580c580",
+ "records_sha256": "sha256:3283e429cf02eac804ed5fe7871922ef74dce79bf6cb4bc0d2b19eb0685f01c9",
+ "result": {
+  "run_id": "2026-11-03T00-03-team-01",
+  "unit": "team",
+  "value": 1.0,
+  "pass": true,
+  "checks": [
+   {
+    "check": "target declared before the run",
+    "ok": true,
+    "detail": "declaration 1793664194, first record 1793664197"
+   },
+   {
+    "check": "items are the declared items",
+    "ok": true,
+    "detail": "16 run, 16 declared"
+   },
+   {
+    "check": "one run id end to end",
+    "ok": true,
+    "detail": "50 records; calls with no Gateway record: []"
+   },
+   {
+    "check": "times agree with AWS",
+    "ok": true,
+    "detail": "no CloudWatch lines given"
+   },
+   {
+    "check": "grader is not a contestant",
+    "ok": true,
+    "detail": "rule-based: the Gateway's Cedar decision and the tool Lambda's own records, compared item "
+   },
+   {
+    "check": "target fraction_of_team_steps_as_declared >= 1.0",
+    "ok": true,
+    "detail": "measured 1"
+   }
+  ],
+  "items": [
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/05",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/06",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/07",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/08",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/09",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/10",
+    "observed": "DENY",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/11",
+    "observed": "REFUSED_BY_TOOL",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/13",
+    "observed": "REFUSED_BY_TOOL",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/14",
+    "observed": "REFUSED_BY_TOOL",
+    "applied": false,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001",
+    "observed": "ALLOW",
+    "applied": true,
+    "ok": true
+   },
+   {
+    "item": "TL-7d7d3124e313",
+    "trace_id": "2026-11-03T00-03-team-01/001/16",
+    "observed": "REFUSED_BY_TOOL",
+    "applied": false,
+    "ok": true
+   }
+  ]
+ }
+}
