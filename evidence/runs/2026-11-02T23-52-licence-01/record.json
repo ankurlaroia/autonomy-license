@@ -55,7 +55,7 @@
   ]
  },
  "licence": {
-  "out": "C:\\Users\\ankur\\Desktop\\hackathone\\autonomy-license\\dist\\bundle",
+  "out": "<local>\\dist\\bundle",
   "licence_jti": "47924051-ffaf-4f58-a17c-231e619c327f",
   "threshold": 0.7,
   "fingerprint": "sha256:fdbe90344cc65f578cc850038d33f45b8340c2ff01b1baaa4ad137d57191650f",
