@@ -20,7 +20,7 @@ def ignored(path):
     "secrets.json", "web/.npmrc", "state/data/test.json", "data/telelogs.csv", "data/telelogs.parquet", "out.jsonl",
     "dist/rehearsal/judging.json", "local.db", "weights.safetensors", "organiser-files/guide.html", "guide.pdf",
     "GUIDE.md", "DEMO_SCRIPT.md", "aws/infra/SMOKE_TEST.md", "web/README.md", "web/AGENTS.md",
-    "demo-run/00-start.png", "ui-snapshots/attack-scorecard.txt", ".claude/launch.json",
+    "demo-run/00-start.png", "ui-snapshots/attack-scorecard.txt", ".mcp.json",
 ])
 def test_stays_out(path):
     assert ignored(path)

@@ -13,6 +13,11 @@ server computes (the agent's own claims are dropped). Hard rules hold whatever t
 the licence hands control back to people. Every decision leaves a record in DynamoDB and CloudWatch under one run
 id.
 
+**The LLMs.** `att/OTel-LLM-8.3B-Classification`, a telecom LLM from Hugging Face, diagnoses each fault; its scores are
+what the licence calibrates, and they were computed once and cached. Amazon Nova Lite on Bedrock writes the specialist's
+note for the engineer and names the lead's next step from a fixed list. Neither model can approve a change: the licence,
+Cedar policy and the tool's re-check decide.
+
 **Architecture.** Agent → Cognito token → AgentCore Gateway → interceptor Lambda (drops the agent's trust fields,
 writes the server's cell count, category, score and licence checks; records the request) → Cedar policy (permit
 or forbid, default deny) → tool Lambda (re-checks everything, records the call before acting) → simulated

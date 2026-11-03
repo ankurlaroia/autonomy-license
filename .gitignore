@@ -93,10 +93,9 @@ out/
 *.tsbuildinfo
 .vercel/
 
-# Editors, operating systems and assistants
+# Editors and operating systems
 .vscode/
 .idea/
-.claude/
 .mcp.json
 graphify-out/
 .DS_Store
