@@ -201,7 +201,7 @@ export default function HelpPage() {
                 the licence says, and revoking it hands control back to people.
               </p>
               <p>
-                Our entry for the Breaking Barriers Hackathon at FYUZ 2026. The design follows build spec v1.2.1.
+                Our entry for the Breaking Barriers Hackathon at FYUZ 2026.
               </p>
             </Section>
 

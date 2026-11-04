@@ -5,6 +5,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const TABS = [
   { href: "/", label: "Console", key: "console" },
+  { href: "/video", label: "Video", key: "video" },
   { href: "/help", label: "Help", key: "help" },
 ] as const;
 
@@ -13,7 +14,7 @@ export default function TopBar({ active, source, onStage, onLive, liveOpen }: {
 }) {
   return (
     <nav className="glass flex items-center justify-between gap-1 py-1.5 pl-2.5 pr-1.5 sm:gap-3 sm:py-2 sm:pl-3.5 sm:pr-2" style={{ borderRadius: 999 }}>
-      <Link href="/" aria-label="Autonomy License, console" className={`flex items-center gap-3 rounded-full ${onLive ? "max-[399px]:hidden" : "max-[349px]:hidden"} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--signal)]`}>
+      <Link href="/" aria-label="Autonomy License, console" className={`flex items-center gap-3 rounded-full max-[399px]:hidden focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--signal)]`}>
         <svg aria-hidden width="32" height="32" viewBox="0 0 32 32">
           <path d="M16 2.5l11.7 6.75v13.5L16 29.5 4.3 22.75V9.25z" style={{ fill: "rgb(var(--signal-rgb) / .12)" }} stroke="var(--signal)" strokeWidth="1.6" />
           <path d="M10.5 16.2l3.6 3.6 7.4-7.6" fill="none" stroke="var(--signal)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
